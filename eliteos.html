@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Desktop</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;overflow:hidden;background:#000;font:14px system-ui,-apple-system,"Segoe UI",sans-serif;color:#eee;user-select:none}
+body.noanim *,body.noanim *::before,body.noanim *::after{transition:none!important;animation:none!important}
+/* ---------- desktop ---------- */
+#desk{position:fixed;inset:0;background:var(--wp) center/cover}
+#clock{position:absolute;left:50%;top:44%;width:max-content;transform:translate(-50%,-50%);text-align:center;color:#fff;text-shadow:0 2px 20px #0006;pointer-events:none;animation:sway 14s ease-in-out infinite}
+#clock::before{content:'';position:absolute;inset:-18px -48px;z-index:-1;border-radius:50%;background:rgba(0,0,0,.4);filter:blur(26px)}
+@keyframes sway{0%,100%{transform:translate(-50%,-50%) rotate(0)}25%{transform:translate(calc(-50% + 6px),calc(-50% - 4px)) rotate(.4deg)}50%{transform:translate(calc(-50% + 2px),calc(-50% + 5px)) rotate(0)}75%{transform:translate(calc(-50% - 6px),calc(-50% - 2px)) rotate(-.4deg)}}
+#clock .tm{font:300 68px/1 Roboto,system-ui,sans-serif}
+#clock .dt{margin-top:8px;font-size:15px;opacity:.85}
+/* ---------- loading ---------- */
+#ld{position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:rgba(10,14,20,.35);-webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);transition:backdrop-filter .9s ease,-webkit-backdrop-filter .9s ease,background .9s ease}
+#ld.done{-webkit-backdrop-filter:blur(0);backdrop-filter:blur(0);background:rgba(10,14,20,0);pointer-events:none}
+#ld>*{transition:opacity .5s ease}
+#ld.done>*{opacity:0}
+#ld h1{font:600 46px system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.02em;color:#fff}
+.sp{width:34px;height:34px;border-radius:50%;border:3px solid rgba(255,255,255,.25);border-top-color:#fff;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* ---------- dock ---------- */
+#bz{display:none;position:fixed;left:0;right:0;bottom:0;height:14px;z-index:8999}
+body.fsm #bz{display:block}
+#tb{position:fixed;left:50%;bottom:8px;transform:translateX(-50%);z-index:9000;padding:6px;border-radius:14px;background:rgba(32,34,38,.88);backdrop-filter:blur(18px);border:1px solid #000;box-shadow:0 8px 30px #0006;transition:transform .25s ease}
+body.fsm #tb{transform:translate(-50%,calc(100% + 16px))}
+body.fsm #bz:hover+#tb,body.fsm #tb:hover{transform:translateX(-50%)}
+#tbi{display:flex;gap:6px}
+.ti{width:42px;height:42px;border-radius:10px;display:grid;place-items:center;cursor:pointer;position:relative;color:#ffffff;font-size:21px;background:rgba(255,255,255,.09);transition:background .15s,transform .15s,opacity .15s}
+.ti:hover{background:rgba(255,255,255,.2);transform:translateY(-2px)}
+.ti svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ti img{width:100%;height:100%;object-fit:cover;border-radius:10px;pointer-events:none}
+.ti.m{opacity:.55}
+.ti::after{content:'';position:absolute;bottom:2px;width:0;height:3px;border-radius:2px;background:#8ab4ff;transition:width .2s}
+.ti.o::after{width:6px}.ti.a::after{width:16px}
+.ti::before{content:attr(data-n);position:absolute;bottom:100%;left:50%;margin-bottom:10px;transform:translate(-50%,4px);background:#111e;padding:4px 10px;border-radius:7px;font-size:12px;color:#eee;white-space:nowrap;opacity:0;pointer-events:none;transition:.15s}
+.ti:hover::before{opacity:1;transform:translate(-50%,0)}
+/* ---------- windows ---------- */
+.win{position:absolute;display:flex;flex-direction:column;border-radius:14px;background:#1b1c20;box-shadow:0 10px 40px #0007,0 0 0 1px #fff2;animation:pop .22s ease;transition:opacity .2s,transform .2s,visibility 0s}
+.win.focus{box-shadow:0 18px 60px #000a,0 0 0 1px #fff4}
+@keyframes pop{from{opacity:0;transform:scale(.92)}}
+.win.closing{opacity:0;transform:scale(.92);pointer-events:none}
+.win.min{opacity:0;transform:translateY(60px) scale(.9);pointer-events:none;visibility:hidden;transition:opacity .2s,transform .2s,visibility 0s .2s}
+.win.tr{transition:left .25s,top .25s,width .25s,height .25s,border-radius .25s,opacity .2s,transform .2s}
+.hd{height:38px;flex:none;display:flex;align-items:center;padding:0 14px;background:#2a2c32;border-radius:14px 14px 0 0;font-weight:500;font-size:13px;color:#ddd;transition:transform .2s}
+.hd .t{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dots{display:flex;gap:8px}.dots b{width:13px;height:13px;border-radius:50%;cursor:pointer}
+.dots b:hover{filter:brightness(1.25)}
+.g{background:#28c840}.o{background:#ffbd2e}.r{background:#ff5f57}
+.bd{flex:1;position:relative;overflow:hidden;border-radius:0 0 14px 14px;background:#1b1c20}
+.bd iframe{width:100%;height:100%;border:0;background:#fff;display:block}
+.sh{position:absolute;inset:0;z-index:2}
+.err{padding:24px;color:#ff8a80}
+.h{position:absolute;z-index:6}
+.h[data-d=n],.h[data-d=s]{left:14px;right:14px;height:8px;cursor:ns-resize}
+.h[data-d=e],.h[data-d=w]{top:14px;bottom:14px;width:8px;cursor:ew-resize}
+.h[data-d=n]{top:-4px}.h[data-d=s]{bottom:-4px}.h[data-d=e]{right:-4px}.h[data-d=w]{left:-4px}
+.h[data-d=ne],.h[data-d=nw],.h[data-d=se],.h[data-d=sw]{width:18px;height:18px}
+.h[data-d=ne]{top:-4px;right:-4px;cursor:nesw-resize}.h[data-d=nw]{top:-4px;left:-4px;cursor:nwse-resize}
+.h[data-d=se]{bottom:-4px;right:-4px;cursor:nwse-resize}.h[data-d=sw]{bottom:-4px;left:-4px;cursor:nesw-resize}
+.tz{display:none}
+.win.fs{border-radius:0}.win.fs .bd{border-radius:0}.win.fs .h{display:none}
+.win.fs .tz{display:block;position:absolute;top:0;left:0;right:0;height:8px;z-index:7}
+.win.fs .hd{position:absolute;top:0;left:0;right:0;z-index:8;border-radius:0;transform:translateY(-100%)}
+.win.fs .tz:hover+.hd,.win.fs .hd:hover{transform:none}
+/* ---------- settings ---------- */
+.st{padding:18px;height:100%;overflow:auto;color:#ddd}
+.st h3{margin:16px 0 8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#8d93a0}.st h3:first-child{margin-top:0}
+.sw{display:flex;flex-wrap:wrap;gap:8px}.sw b{width:84px;height:52px;border-radius:9px;cursor:pointer;border:2px solid transparent}.sw b.on{border-color:#fff}
+.row{display:flex;gap:8px}
+.st input[type=text]{flex:1;background:#2a2c32;border:1px solid #3a3d45;color:#eee;padding:8px 10px;border-radius:8px;outline:0;user-select:text}
+.st button{background:#3d6fe0;border:0;color:#fff;padding:8px 14px;border-radius:8px;cursor:pointer}.st button:hover{background:#4d7ff0}
+.st label{display:flex;gap:8px;align-items:center;cursor:pointer}
+</style></head>
+<body>
+<div id="desk"><div id="clock"><div class="tm"></div><div class="dt"></div></div></div>
+<div id="bz"></div>
+<div id="tb"><div id="tbi"></div></div>
+<div id="ld"><h1>eliteOS</h1><div class="sp"></div></div>
+<script>
+/* =====================================================================
+   ADD AN APP = add one line to APPS. Types:
+   url   : src = base64 of the URL            (btoa("https://site.com"))
+   sf    : src = raw.githubusercontent.com link to ONE html file
+   html5 : html / js / css = raw.githubusercontent.com links
+   icon  : paste an image link right after icon:  e.g. icon:'https://site.com/icon.png' (or an emoji)
+   Optional: size:[w,h]   (pages that request pointer lock get it automatically; Esc frees it)
+   ===================================================================== */
+const APPS=[
+ {name:'Elite',icon:'https://raw.githubusercontent.com/xxuep1/xxuep-icons/main/eliteicon.png',type:'html5',html:'https://raw.githubusercontent.com/xxuep1/elite/main/index.html',js:'https://raw.githubusercontent.com/xxuep1/elite/main/elite.js',css:'https://raw.githubusercontent.com/xxuep1/elite/main/elite.css'},
+ {name:'GN Math',icon:'https://raw.githubusercontent.com/xxuep1/xxuep-icons/main/gnmath.png',type:'sf',src:'https://raw.githubusercontent.com/xxuep1/randomgames/main/gn.html'},
+ {name:'UGS',icon:'https://raw.githubusercontent.com/xxuep1/xxuep-icons/main/ugsicon.png',type:'sf',src:'https://raw.githubusercontent.com/xxuep1/randomgames/main/ugs.html'},
+ {name:'Single File',icon:'https://raw.githubusercontent.com/xxuep1/xxuep-icons/main/singlefile.png',type:'sf',src:'https://raw.githubusercontent.com/CoolDude2349/Offline-HTML-Games-Pack/master/single-file.html'},
+ {name:'Zetify',icon:'https://raw.githubusercontent.com/xxuep1/xxuep-icons/main/zetify.png',type:'sf',src:'https://raw.githubusercontent.com/xxuep1/randomgames/main/zetify.html'},
+ {name:'T!tan',icon:'https://raw.githubusercontent.com/xxuep1/xxuep-icons/main/titan.png',type:'sf',src:'https://raw.githubusercontent.com/sad-shady/sad-project/main/homework-2-20.html'},
+ // link icon example: {name:'My App',icon:'https://example.com/icon.png',type:'url',src:'aHR0cHM6Ly9leGFtcGxlLmNvbQ=='},
+ // {name:'Movies',icon:'https://api.iconify.design/fluent-emoji-flat/clapper-board.svg',type:'html5',html:'https://raw.githubusercontent.com/USER/REPO/main/index.html',js:'https://raw.githubusercontent.com/USER/REPO/main/app.js',css:'https://raw.githubusercontent.com/USER/REPO/main/style.css'},
+ {name:'Settings',icon:'https://raw.githubusercontent.com/xxuep1/xxuep-icons/main/gear.png',type:'builtin',size:[580,480]},
+];
+/* WALLPAPERS: add image URLs here (or any CSS background). First one is the default. */
+const WPS=[
+ 'https://raw.githubusercontent.com/xxuep1/wallpapers-8k/main/city.jpg',
+ 'https://raw.githubusercontent.com/xxuep1/wallpapers-8k/main/idekwhatthisis.jpg',
+ 'https://raw.githubusercontent.com/xxuep1/wallpapers-8k/main/whitechunkything.jpg',
+ 'https://raw.githubusercontent.com/xxuep1/wallpapers-8k/main/palmtrees.jpg',
+ 'https://raw.githubusercontent.com/xxuep1/wallpapers-8k/main/shapes.jpg',
+];
+const wpv=g=>/^(https?:|data:|\.|\/)/.test(g)?`url("${g}")`:g;
+const $=s=>document.querySelector(s),T=setTimeout;
+/* ---------- loading screen ---------- */
+T(()=>$('#ld').classList.add('done'),2000);T(()=>$('#ld').remove(),3000);
+/* ---------- settings store ---------- */
+let S={wp:0,anim:true};
+try{Object.assign(S,JSON.parse(localStorage.getItem('fb')||'{}'))}catch(e){}
+const save=()=>{try{localStorage.setItem('fb',JSON.stringify(S))}catch(e){}};
+function applyS(){document.body.classList.toggle('noanim',!S.anim);$('#desk').style.setProperty('--wp',wpv(WPS[S.wp]||WPS[0]))}
+const setWp=v=>{S.wp=v;applyS();save()};
+applyS();
+/* ---------- helpers ---------- */
+function mkIcon(a,el){const i=a.icon||'';if(i.startsWith('<svg'))el.innerHTML=i;else if(/^(https?:|data:|\.|\/)/.test(i)){const m=new Image();m.src=i;m.draggable=false;m.onerror=()=>{m.remove();el.textContent=a.name[0]};el.append(m)}else el.textContent=i||a.name[0]}
+function clk(){const d=new Date(),h=d.getHours();$('#clock .tm').textContent=(h%12||12)+':'+String(d.getMinutes()).padStart(2,'0')+' '+(h<12?'am':'pm');$('#clock .dt').textContent=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}
+clk();setInterval(clk,5000);
+/* ---------- dock ---------- */
+APPS.forEach(a=>{const e=document.createElement('div');e.className='ti';e.dataset.n=a.name;mkIcon(a,e);a.ti=e;
+ e.onclick=()=>{const w=wins[a.name];!w?openApp(a):w.min?restore(w):w.focused?minimize(w):focus(w)};$('#tbi').append(e)});
+$('#desk').addEventListener('pointerdown',e=>{if(e.target.id==='desk'||e.target.id==='icons')blurAll()});
+/* ---------- window manager ---------- */
+const wins={};let Z=10,N=0;
+const vis=()=>Object.values(wins).filter(v=>!v.min).sort((a,b)=>b.el.style.zIndex-a.el.style.zIndex)[0];
+function sync(w){if(w.sh)w.sh.style.display=w.focused?'none':'block'}
+function fsUpd(){const w=Object.values(wins).find(v=>v.focused);document.body.classList.toggle('fsm',!!(w&&w.fs&&!w.min))}
+function setFocus(w){for(const k in wins){const v=wins[k];v.focused=v===w;v.el.classList.toggle('focus',v.focused);v.ti.classList.toggle('a',v.focused&&!v.min);sync(v)}fsUpd()}
+function focus(w){w.el.style.zIndex=++Z;setFocus(w);if(w.f)w.f.focus()}
+function blurAll(){setFocus(null)}
+function minimize(w){w.min=true;w.el.classList.add('min');w.ti.classList.add('m');const n=vis();n?focus(n):blurAll()}
+function restore(w){w.min=false;w.el.classList.remove('min');w.ti.classList.remove('m');focus(w)}
+function close(w){const was=w.focused;delete wins[w.a.name];if(w.f)w.f.remove();w.ti.className='ti';
+ w.el.classList.add('closing');T(()=>w.el.remove(),180);if(was){const n=vis();n?focus(n):blurAll()}else fsUpd()}
+function toggleFs(w){const e=w.el;e.classList.add('tr');
+ if(!w.fs){w.prev=[e.style.left,e.style.top,e.style.width,e.style.height];e.style.left=e.style.top='0';e.style.width=e.style.height='100%'}
+ else[e.style.left,e.style.top,e.style.width,e.style.height]=w.prev;
+ w.fs=!w.fs;e.classList.toggle('fs',w.fs);T(()=>e.classList.remove('tr'),300);fsUpd()}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.exitPointerLock()});
+
+function openApp(a){
+ let w=wins[a.name];if(w){w.min?restore(w):focus(w);return}
+ const e=document.createElement('div');e.className='win';
+ const [W,H]=a.size||[Math.min(960,innerWidth*.7),Math.min(620,innerHeight*.7)],o=(N++%6)*28;
+ e.style.cssText=`width:${W}px;height:${H}px;left:${Math.max(0,(innerWidth-W)/2+o-70)}px;top:${Math.max(0,(innerHeight-H-52)/2+o-40)}px`;
+ e.innerHTML='<div class="tz"></div><div class="hd"><span class="t"></span><div class="dots"><b class="g"></b><b class="o"></b><b class="r"></b></div></div><div class="bd"></div>';
+ e.querySelector('.t').textContent=a.name;
+ ['n','s','e','w','ne','nw','se','sw'].forEach(d=>{const h=document.createElement('div');h.className='h';h.dataset.d=d;e.append(h);resizer(h,d,e)});
+ const ti=a.ti;ti.classList.add('o');
+ w={a,el:e,ti,min:false,fs:false};wins[a.name]=w;
+ const [g,or,r]=e.querySelectorAll('.dots b');g.onclick=()=>toggleFs(w);or.onclick=()=>minimize(w);r.onclick=()=>close(w);
+ e.addEventListener('pointerdown',()=>{if(!w.focused)focus(w)},true);
+ const hd=e.querySelector('.hd');drag(hd,e,w);
+ hd.ondblclick=ev=>{if(!ev.target.closest('.dots'))toggleFs(w)};
+ $('#desk').append(e);mount(w,e.querySelector('.bd'));focus(w);
+}
+async function mount(w,bd){
+ const a=w.a;
+ if(a.type==='builtin'){renderSettings(bd);return}
+ const f=document.createElement('iframe');f.allow='fullscreen; autoplay; gamepad; clipboard-read; clipboard-write; microphone; camera';f.allowFullscreen=true;
+ const sh=document.createElement('div');sh.className='sh';
+  bd.append(f,sh);w.f=f;w.sh=sh;sync(w);
+ const base=u=>`<base href="${u.slice(0,u.lastIndexOf('/')+1)}">`;
+ const inj=(t,u)=>/<head[^>]*>/i.test(t)?t.replace(/<head[^>]*>/i,m=>m+base(u)):base(u)+t;
+ const get=async u=>{const r=await fetch(u);if(!r.ok)throw Error(r.status+' '+u);return r.text()};
+ try{
+  if(a.type==='url')f.src=atob(a.src);
+  else if(a.type==='sf')f.srcdoc=inj(await get(a.src),a.src);
+  else if(a.type==='html5'){
+   const [h,j,c]=await Promise.all([get(a.html),a.js?get(a.js):'',a.css?get(a.css):'']);
+   f.srcdoc=inj(h,a.html)+(c?`<style>${c}</style>`:'')+(j?'<script>'+j.replace(/<\/script/gi,'<\\/script')+'<\/script>':'');
+  }else throw Error('Unknown type "'+a.type+'"');
+ }catch(err){f.remove();sh.remove();w.f=w.sh=null;bd.innerHTML='<div class="err">Failed to load: '+String(err.message).replace(/</g,'&lt;')+'</div>'}
+}
+/* ---------- drag + resize ---------- */
+function drag(hd,e,w){
+ hd.onpointerdown=ev=>{if(ev.button||w.fs||ev.target.closest('.dots'))return;
+  hd.setPointerCapture(ev.pointerId);const ox=ev.clientX-e.offsetLeft,oy=ev.clientY-e.offsetTop;
+  hd.onpointermove=m=>{e.style.left=Math.min(Math.max(m.clientX-ox,100-e.offsetWidth),innerWidth-100)+'px';e.style.top=Math.min(Math.max(m.clientY-oy,0),innerHeight-90)+'px'};
+  hd.onpointerup=()=>{hd.onpointermove=hd.onpointerup=null}}}
+function resizer(h,d,e){
+ h.onpointerdown=ev=>{if(ev.button)return;ev.preventDefault();h.setPointerCapture(ev.pointerId);
+  const L=e.offsetLeft,Tp=e.offsetTop,W=e.offsetWidth,H=e.offsetHeight,sx=ev.clientX,sy=ev.clientY,mw=320,mh=200;
+  h.onpointermove=m=>{const dx=m.clientX-sx,dy=m.clientY-sy;let l=L,t=Tp,w=W,hh=H;
+   if(d.includes('e'))w=Math.max(mw,W+dx);
+   if(d.includes('s'))hh=Math.max(mh,H+dy);
+   if(d.includes('w')){w=Math.max(mw,W-dx);l=L+W-w}
+   if(d.includes('n')){hh=Math.max(mh,H-dy);t=Tp+H-hh;if(t<0){hh+=t;t=0}}
+   e.style.cssText+=`;left:${l}px;top:${t}px;width:${w}px;height:${hh}px`};
+  h.onpointerup=()=>{h.onpointermove=h.onpointerup=null}}}
+/* ---------- settings app ---------- */
+function renderSettings(b){
+ b.innerHTML='<div class="st"><h3>Wallpaper</h3><div class="sw"></div><h3>Animations</h3><label><input type="checkbox"> Enable smooth animations</label></div>';
+ const sw=b.querySelector('.sw'),cb=b.querySelector('input');
+ WPS.forEach((g,i)=>{const s=document.createElement('b');s.style.background=wpv(g)+' center/cover';s.classList.toggle('on',S.wp===i);
+  s.onclick=()=>{setWp(i);sw.querySelectorAll('b').forEach(x=>x.classList.toggle('on',x===s))};sw.append(s)});
+ cb.checked=S.anim;cb.onchange=()=>{S.anim=cb.checked;applyS();save()};
+}
+</script></body></html>
