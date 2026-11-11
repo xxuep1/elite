@@ -49,16 +49,34 @@ if (themeSelect) {
 
 // --- EASY SETUP FOR IMAGE GRIDS ---
 const grid1Data = [
+  { title: "-3", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/minus33.jpg", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/-3__minus_3_.html" },
+  { title: "-b", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/minusbb.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/-b__minus_b_.html" },
   { title: "10 Minutes till Dawn", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/10-minutes-till-dawn_1x1.jpeg", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-HTML-Games-Pack/master/offline/10-minutes-till-dawn.html" },
   { title: "12 Mini Battles", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/12minibattles.png", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-HTML-Games-Pack/master/offline/12-mini-battles.html" },
+  { title: "1 Date Danger", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/onedatedangerr.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/1_Date_Danger.html" },
   { title: "1 On 1 Soccer", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/1-on-1-soccer.jpg", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-HTML-Games-Pack/master/offline/1-on-1-soccer.html" },
   { title: "1 On 1 Tennis", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/1on1tennis.jpg", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-HTML-Games-Pack/master/offline/1-on-1-tennis.html" },
   { title: "1v1.lol", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/1v1 loo.jpeg", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-HTML-Games-Pack/master/offline/1v1.lol.html" },
   { title: "2048", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/2048logo.jpeg", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-HTML-Games-Pack/master/offline/2048.html" },
-  { title: "2048 Cupcakes", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/2048logocupcakes.png", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-HTML-Games-Pack/master/offline/2048-cupcakes.html" },
+  { title: "2048 Cupcakes", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/2048logocupcakes.png", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-HTML-Games-Pack/master/offline/2048-cupcakes.html" },
+  { title: "2048 Merge Run", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/2048cubemergee.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/2048_Merge_Run.html" },
+  { title: "20 Minutes Till Dawn", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/20minstilldawnn.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/20_Minutes_Till_Dawn.html" },
+  { title: "3D Bolt Master", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/3dboltmasterr.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/3D_Bolt_Master.html" },
+  { title: "3D Bowling", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/3dbowlingg.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/3D_Bowling.html" },
   { title: "3D Flight Simulator", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/3dflight.jpeg", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-HTML-Games-Pack/master/offline/3D-flight-simulator.html" },
+  { title: "60 Seconds Reatomized", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/60secondss.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/60_Seconds__Reatomized.html" },
+  { title: "64 in 1 NES", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/64in11.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/64_in_1_NES.html" },
   { title: "8ball Classic", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/8ballclassiclogo.jpg", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-HTML-Games-Pack/master/offline/8-ball-classic.html" },
+  { title: "8 Ball Pool", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/8ballpooll.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/8_Ball_Pool.html" },
   { title: "9007199254740992", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/90071gamee.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-HTML-Games-Pack/master/offline/9007199254740992.html" },
+  { title: "99 Balls", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/99ballss.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/99_Balls.html" },
+  { title: "A Bite at Freddys", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/abiteatfreddyss.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/A_Bite_at_Freddy_s.html" },
+  { title: "A Dance of Fire and Ice", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/adancee.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/A_Dance_of_Fire_and_Ice.html" },
+  { title: "A Difficult Game About Climbing", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/adifficultt.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/A_Difficult_Game_About_Climbing.html" },
+  { title: "A Game About Feeding A Black Hole", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/blackholee.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/A_Game_About_Feeding_A_Black_Hole" },
+  { title: "A Small World Cup", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/asmallworldcupp.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/A_Small_World_Cup" },
+  { title: "Abandoned", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/abandonedd.png", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/Abandoned.html" },
+  { title: "Ace Attorney Investigations - Miles Edgeworth", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/aceattorneyy.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/Ace_Attorney_Investigations_-_Miles_Edgeworth.html" },
   { title: "Age of War", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/ageofwar.jpeg", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-HTML-Games-Pack/master/offline/age-of-war.html" },
   { title: "Age of War 2", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/ageofwar2.jpg", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-HTML-Games-Pack/master/offline/age-of-war-2.html" },
   { title: "Ages of Conflict", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/agesofclonflictlogo.jpg", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-HTML-Games-Pack/master/offline/ages-of-conflict.html" },
@@ -126,7 +144,9 @@ const grid1Data = [
   { title: "Deadly Descent", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/deadlydescentt.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/deadly-descent.html" },
   { title: "Death Chase", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/deathchasee.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/death-chase.html" },
   { title: "Death Run 3D", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/deathrun3dd.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/death-run-3D.html" },
+  { title: "Deltarune", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/deltarunee.jpg", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/deltarune.html" },
   { title: "Demolition Derby Crash Racing", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/demolitionderbyy.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/demolition-derby-crash-racing.html" },
+  { title: "Doki Doki Literature Club", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/dokidokii.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/Doki_Doki_Literature_Club.html" },
   { title: "Doodle Jump", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/doodlejumpp.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/doodle-jump.html" },
   { title: "Draw Climber", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/drawclimberr.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/draw-climber.html" },
   { title: "Dreadhead Parkour", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/dreadheadparkourr.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/dreadhead-parkour.htm" },
@@ -192,7 +212,7 @@ const grid1Data = [
   { title: "Funny Mad Racing", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/funnymadracingg.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/funny-mad-racing.html" },
   { title: "Funny Shooter 2", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/funnyshooter22.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/funny-shooter-2.html" },
   { title: "Gang Beasts", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/gangbeastss.jpg", htmlUrl: "https://raw.githubusercontent.com/xxuep/webport-list-for-wasm.rip-but-sf/main/gangbeasts/gangbeastssf.html" },
-  { title: "Geometry Dash WASM", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/geometrydashwasmm.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep/geodash-wasm-single/main/geosingle.html" },
+  { title: "Geometry Dash WASM FIXED", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/geometrydashwasmm.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/geometrydashreal.html" },
   { title: "Geometry Vibes", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/geometrydashvibess.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/geometry-vibes.html" },
   { title: "Get On Top", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/getontopp.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/get-on-top.html" },
   { title: "Getaway Shootout", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/getawayshootoutt.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/getaway-shootout.htm" },
@@ -210,6 +230,7 @@ const grid1Data = [
   { title: "Highway Traffic", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/highwaytrafficc.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/highway-traffic.html" },
   { title: "Hill Climb Racing Lite", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/hillclimblitee.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/hill-climb-racing-lite.html" },
   { title: "Hole.io", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/holeioo.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/hole-io.html" },
+  { title: "Hollow Knight", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/hollowknightt.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/hollow-knight.html" },
   { title: "House of Hazards", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/houseofhazardss.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/house-of-hazards.html" },
   { title: "Hover Racer Drive", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/hoverracerdrivee.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/hover-racer-drive.html" },
   { title: "Ice Dodo", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/icedodoo.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/ice-dodo.html" },
@@ -233,6 +254,7 @@ const grid1Data = [
   { title: "Little Alchemy 2", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/littlealchemy22.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/littlealchemy-2.html" },
   { title: "Madalin Stunt Cars 2", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/madalinstuntcars22.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/madalin-stunt-cars-2.html" },
   { title: "Madness Project Nexus", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/madnessprojectnexuss.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/madness-project-nexus.html" },
+  { title: "MeowDoku!", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/meowdokuu.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/meowdoku.html" },
   { title: "Melon Playground", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/melonplaygroundd.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/melon-playground.html" },
   { title: "Merge Round Racers", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/mergeroundracerss.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/merge-round-racers.html" },
   { title: "Minesweeper", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/minesweeperr.png", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/minesweeper.html" },
@@ -289,6 +311,7 @@ const grid1Data = [
   { title: "Retro Bowl College", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/retrobowlcollegee.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/retro-bowl-college.html" },
   { title: "Retro Bowl", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/retrobowll.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/retro-bowl.html" },
   { title: "Retro Highway", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/retrohighwayy.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/retro-highway.html" },
+  { title: "R.E.P.O", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/repoo.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/repo-halloween.html" },
   { title: "Riddle School", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/riddleschooll.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/riddle-school.html" },
   { title: "Riddle School 2", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/riddleschool22.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/riddle-school-2.html" },
   { title: "Riddle School 3", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/riddleschool33.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/riddle-school-3.html" },
@@ -370,6 +393,9 @@ const grid1Data = [
   { title: "Trivia Crack", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/triviacrackk.png", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/trivia-crack.html" },
   { title: "Tube Jumpers", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/tubejumperss.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/tube-jumpers.html" },
   { title: "Tunnel Rush", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/tunnelrushh.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/tunnel-rush.html" },
+  { title: "Turbo Dismount", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/turbodismount11.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/turbo-dismount.html" },
+  { title: "Undertale", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/undertalee.jpg", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/undertale.html" },
+  { title: "UltraKill", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/ultrakilll.png", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/ultrakill.html" },
   { title: "Unicycle Hero", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/unicycleheroo.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/unicycle-hero.html" },
   { title: "Vex x3m", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/vexx3mm.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/vex-x3m.html" },
   { title: "Vex x3m 2", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/vexx3m22.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/vex-x3m-2.html" },
@@ -427,211 +453,10 @@ const backBtn = document.getElementById('backBtn');
 const forwardBtn = document.getElementById('forwardBtn');
 const searchEngineSelect = document.getElementById('searchEngineSelect');
 
-// Extensions logic
-const extensionsBtn = document.getElementById('extensionsBtn');
-const extensionsPanel = document.getElementById('extensions-panel');
-const extClose = document.getElementById('ext-close');
-const extReset = document.getElementById('ext-reset');
-const throwablesLayer = document.getElementById('throwables-layer');
-
-if (extensionsBtn) extensionsBtn.addEventListener('click', () => extensionsPanel.classList.toggle('hidden'));
-if (extClose) extClose.addEventListener('click', () => extensionsPanel.classList.add('hidden'));
-
-let currentThrowable = null;
-let onekoActive = false;
-
-const extTomato = document.getElementById('ext-tomato');
-const extAxe = document.getElementById('ext-axe');
-const extBottle = document.getElementById('ext-bottle');
-const extOneko = document.getElementById('ext-oneko');
-
-if (extTomato) extTomato.addEventListener('click', () => selectThrowable('tomato'));
-if (extAxe) extAxe.addEventListener('click', () => selectThrowable('axe'));
-if (extBottle) extBottle.addEventListener('click', () => selectThrowable('bottle'));
-
-if (extOneko) extOneko.addEventListener('click', (e) => {
-  onekoActive = !onekoActive;
-  e.currentTarget.classList.toggle('active', onekoActive);
-  if(onekoActive) initOneko();
-  else removeOneko();
-});
-
-if (extReset) extReset.addEventListener('click', () => {
-  if (throwablesLayer) throwablesLayer.innerHTML = '';
-});
-
-function selectThrowable(type) {
-  currentThrowable = type;
-  document.querySelectorAll('.ext-item').forEach(el => el.classList.remove('active'));
-  const activeExt = document.getElementById('ext-' + type);
-  if (activeExt) activeExt.classList.add('active');
-}
-
-// Intercept clicks on iframe wrapper to throw objects
-document.addEventListener('click', (e) => {
-  if(!currentThrowable || !throwablesLayer) return;
-  if (e.clientY < 93) return;
-
-  const rect = throwablesLayer.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-
-  throwObject(currentThrowable, x, y);
-});
-
-if (iframe) {
-  iframe.addEventListener('load', () => {
-    try {
-      const iDoc = iframe.contentDocument;
-      if(iDoc) {
-        iDoc.addEventListener('click', (e) => {
-          if(currentThrowable) {
-            const x = e.clientX;
-            const y = e.clientY;
-            throwObject(currentThrowable, x, y);
-          }
-        });
-
-        // Pass mousemove for Oneko
-        iDoc.addEventListener('mousemove', (e) => {
-          if(onekoActive) {
-            window.lastIframeMouseX = e.clientX;
-            window.lastIframeMouseY = e.clientY;
-          }
-        });
-      }
-    } catch(e) {}
-  });
-}
-
-function throwObject(type, x, y) {
-  if (!throwablesLayer) return;
-  const anim = document.createElement('div');
-  anim.className = 'throw-anim';
-  anim.style.left = '50%';
-  anim.style.top = '100%';
-  
-  let emoji = '🍅';
-  if(type === 'axe') emoji = '🪓';
-  if(type === 'bottle') emoji = '🍾';
-  anim.innerText = emoji;
-  
-  anim.style.animation = 'throwSpin 0.5s linear forwards';
-  anim.style.transition = 'all 0.5s ease-out';
-  throwablesLayer.appendChild(anim);
-
-  setTimeout(() => {
-    anim.style.left = x + 'px';
-    anim.style.top = y + 'px';
-  }, 10);
-
-  setTimeout(() => {
-    anim.remove();
-    createSplat(type, x, y);
-  }, 500);
-}
-
-function createSplat(type, x, y) {
-  if (!throwablesLayer) return;
-  const splat = document.createElement('div');
-  splat.style.left = x + 'px';
-  splat.style.top = y + 'px';
-  
-  if (type === 'tomato') {
-    splat.className = 'splatter';
-    splat.innerText = '💥'; 
-  } else if (type === 'axe') {
-    splat.className = 'axe-stuck';
-    splat.innerText = '🪓';
-  } else if (type === 'bottle') {
-    splat.className = 'bottle-shatter';
-    splat.innerText = '💦'; 
-    
-    for (let i = 0; i < 6; i++) {
-        const piece = document.createElement('div');
-        piece.className = 'bottle-piece';
-        piece.innerText = '🧊';
-        piece.style.left = x + 'px';
-        piece.style.top = y + 'px';
-        piece.style.setProperty('--dx', (Math.random() * 160 - 80) + 'px');
-        throwablesLayer.appendChild(piece);
-        setTimeout(() => piece.remove(), 1000);
-    }
-  }
-  throwablesLayer.appendChild(splat);
-}
-
-// --- Oneko Cursor Tracker Implementation ---
-let onekoEl, onekoInterval;
-let mousePosX = 0, mousePosY = 0;
-function initOneko() {
-  if (document.getElementById('oneko-cat')) return;
-  onekoEl = document.createElement('div');
-  onekoEl.id = 'oneko-cat';
-  onekoEl.style.width = '32px';
-  onekoEl.style.height = '32px';
-  onekoEl.style.position = 'fixed';
-  onekoEl.style.pointerEvents = 'none';
-  onekoEl.style.backgroundImage = "url('https://raw.githubusercontent.com/adryd325/oneko.js/main/oneko.gif')";
-  onekoEl.style.imageRendering = 'pixelated';
-  onekoEl.style.left = '16px';
-  onekoEl.style.top = '16px';
-  onekoEl.style.zIndex = '10007';
-  document.body.appendChild(onekoEl);
-
-  document.addEventListener('mousemove', (e) => {
-    mousePosX = e.clientX;
-    mousePosY = e.clientY;
-  });
-
-  let catX = 32, catY = 32;
-  let frame = 0;
-
-  onekoInterval = setInterval(() => {
-    if (document.activeElement === iframe && window.lastIframeMouseX !== undefined) {
-      mousePosX = window.lastIframeMouseX + 64; 
-      mousePosY = window.lastIframeMouseY + 93; 
-    }
-
-    const diffX = mousePosX - catX;
-    const diffY = mousePosY - catY;
-    const distance = Math.sqrt(diffX**2 + diffY**2);
-    
-    if (distance > 10) {
-      catX += diffX * 0.1;
-      catY += diffY * 0.1;
-      
-      let direction = '';
-      if(diffY < -10) direction = 'N';
-      else if(diffY > 10) direction = 'S';
-      if(diffX < -10) direction += 'W';
-      else if(diffX > 10) direction += 'E';
-
-      let bgPosX = -32, bgPosY = 0; 
-      if(direction.includes('W')) bgPosX = -64;
-      if(direction.includes('E')) bgPosX = 0;
-      
-      frame = (frame === 0) ? 1 : 0;
-      bgPosY = frame * -32;
-
-      onekoEl.style.backgroundPosition = `${bgPosX}px ${bgPosY}px`;
-    } else {
-      onekoEl.style.backgroundPosition = `-32px 0px`;
-    }
-
-    onekoEl.style.left = (catX - 16) + 'px';
-    onekoEl.style.top = (catY - 16) + 'px';
-  }, 50);
-}
-
-function removeOneko() {
-  if (onekoEl) onekoEl.remove();
-  clearInterval(onekoInterval);
-}
-
 // Sidebar & Page Elements
 const pageContainers = {
-  home: { btns: [document.getElementById('nav-home')], hide: [] }, 
+  home: { btn: document.getElementById('nav-home'), el: document.getElementById('home-page') },
+  browser: { btn: document.getElementById('nav-browser') }, 
   page2: { btn: document.getElementById('nav-page2'), el: document.getElementById('page2') },
   page3: { btn: document.getElementById('nav-page3'), el: document.getElementById('page3') },
   settings: { btn: document.getElementById('nav-settings'), el: document.getElementById('settings-page') },
@@ -705,36 +530,26 @@ checkCompatibility();
 
 function switchView(viewName) {
   document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
-  if (pageContainers.page2.el) pageContainers.page2.el.style.display = 'none';
-  if (pageContainers.page3.el) pageContainers.page3.el.style.display = 'none';
-  if (pageContainers.settings.el) pageContainers.settings.el.style.display = 'none';
-  if (pageContainers.credits.el) pageContainers.credits.el.style.display = 'none';
-
-  if (viewName === 'home') {
-    if (pageContainers.home.btns[0]) pageContainers.home.btns[0].classList.add('active');
-    if (tabsBar) tabsBar.style.display = 'flex';
-    if (chromeBar) chromeBar.style.display = 'flex';
-    if (currentTabId != null) switchToTab(currentTabId); 
-  } else {
-    if (tabsBar) tabsBar.style.display = 'none';
-    if (chromeBar) chromeBar.style.display = 'none';
-    if (newtab) newtab.style.display = 'none';
-    if (iframe) {
-      iframe.style.display = 'none';
-      iframe.src = 'about:blank';
-    }
-    if (iframeLoadingBg) iframeLoadingBg.style.display = 'none';
-    
-    if (pageContainers[viewName].btn) pageContainers[viewName].btn.classList.add('active');
-    if (pageContainers[viewName].el) pageContainers[viewName].el.style.display = 'block';
-  }
+  document.querySelectorAll('.page-container').forEach(p => p.style.display = 'none');
+  const isBrowser = viewName === 'browser';
+  document.body.classList.toggle('elite-browser-view', isBrowser);
+  if (tabsBar) tabsBar.style.display = isBrowser ? 'flex' : 'none';
+  if (chromeBar) chromeBar.style.display = isBrowser ? 'flex' : 'none';
+  if (newtab) newtab.style.display = 'none';
+  if (iframe) iframe.style.display = 'none';
+  if (iframeLoadingBg) iframeLoadingBg.style.display = 'none';
+  const page = pageContainers[viewName];
+  if (page && page.btn) page.btn.classList.add('active');
+  if (page && page.el) page.el.style.display = 'block';
+  if (isBrowser && currentTabId != null) switchToTab(currentTabId);
+  if (isBrowser) updateTopOffsets();
 }
 
-if (pageContainers.home.btns[0]) pageContainers.home.btns[0].addEventListener('click', () => switchView('home'));
-if (pageContainers.page2.btn) pageContainers.page2.btn.addEventListener('click', () => switchView('page2'));
-if (pageContainers.page3.btn) pageContainers.page3.btn.addEventListener('click', () => switchView('page3'));
-if (pageContainers.settings.btn) pageContainers.settings.btn.addEventListener('click', () => switchView('settings'));
-if (pageContainers.credits.btn) pageContainers.credits.btn.addEventListener('click', () => switchView('credits'));
+for (const name of ['home','browser','page2','page3','settings','credits']) {
+  const page = pageContainers[name];
+  if (page && page.btn) page.btn.addEventListener('click', () => switchView(name));
+}
+document.getElementById('home-open-browser')?.addEventListener('click', () => switchView('browser'));
 
 function getSearchEnginePrefix() {
   const engine = localStorage.getItem('xxuep_engine') || 'duckduckgo';
@@ -1093,8 +908,190 @@ function buildGrid(containerId, dataArray) {
 
 // Initialize UI Elements
 buildGrid('grid1-container', grid1Data);
+
+const gamesSearchInput = document.getElementById('gamesSearch');
+const gamesSearchClear = document.getElementById('gamesSearchClear');
+const gamesCount = document.getElementById('gamesCount');
+const gamesNoResults = document.getElementById('gamesNoResults');
+const gameCards = [...document.querySelectorAll('#grid1-container .grid-item')];
+const gameSearchIndex = gameCards.map((card, index) => ({
+  card,
+  name: grid1Data[index].title.toLocaleLowerCase(),
+  compact: grid1Data[index].title.toLocaleLowerCase().replace(/[^a-z0-9]/g, '')
+}));
+function filterGames() {
+  const query = (gamesSearchInput?.value || '').trim().toLocaleLowerCase();
+  const tokens = query.split(/\s+/).filter(Boolean);
+  const compact = query.replace(/[^a-z0-9]/g, '');
+  let visible = 0;
+  for (const game of gameSearchIndex) {
+    const matches = !query || tokens.every(token => game.name.includes(token)) || (compact && game.compact.includes(compact));
+    game.card.hidden = !matches;
+    if (matches) visible++;
+  }
+  if (gamesCount) gamesCount.textContent = query ? `${visible} of ${gameCards.length} games` : `${gameCards.length} games`;
+  if (gamesNoResults) gamesNoResults.hidden = visible !== 0;
+  if (gamesSearchClear) gamesSearchClear.hidden = !query;
+}
+gamesSearchInput?.addEventListener('input', filterGames);
+gamesSearchInput?.addEventListener('keydown', event => {
+  if (event.key === 'Escape') {
+    gamesSearchInput.value = '';
+    filterGames();
+    gamesSearchInput.blur();
+  }
+});
+gamesSearchClear?.addEventListener('click', () => {
+  gamesSearchInput.value = '';
+  filterGames();
+  gamesSearchInput.focus();
+});
+filterGames();
 buildVideoGrid("grid2-container", movieGridData);
 renderShortcuts();
 createTab(); 
 switchView('home'); 
 window.addEventListener('resize', updateTopOffsets);
+
+// ONEKO MOD: upload oneko.gif to GitHub, then replace this URL with its raw.githubusercontent.com link.
+// The bundled local GIF works immediately if you upload it alongside index.html.
+const ONEKO_SPRITE_URL = 'https://raw.githubusercontent.com/xxuep1/elite/main/oneko.gif';
+const onekoFrames = {
+  idle: [[-3,-3]], alert: [[-7,-3]], scratch: [[-5,0],[-6,0],[-7,0]],
+  tired: [[-3,-2]], sleeping: [[-2,0],[-2,-1]],
+  N: [[-1,-2],[-1,-3]], NE: [[0,-2],[0,-3]],
+  E: [[-3,0],[-3,-1]], SE: [[-5,-1],[-5,-2]],
+  S: [[-6,-3],[-7,-2]], SW: [[-5,-3],[-6,-1]],
+  W: [[-4,-2],[-4,-3]], NW: [[-1,0],[-1,-1]]
+};
+let activeOneko = null;
+function setOnekoMod(enabled) {
+  if (!enabled) {
+    if (!activeOneko) return;
+    clearInterval(activeOneko.timer);
+    document.removeEventListener('pointermove', activeOneko.onMove);
+    activeOneko.el.remove();
+    activeOneko = null;
+    return;
+  }
+  if (activeOneko) return;
+  const el = document.createElement('div');
+  el.id = 'elite-oneko';
+  el.setAttribute('aria-hidden', 'true');
+  el.style.backgroundImage = `url(${JSON.stringify(ONEKO_SPRITE_URL)})`;
+  document.body.appendChild(el);
+  let x = Math.min(window.innerWidth - 16, 32);
+  let y = Math.min(window.innerHeight - 16, 32);
+  let targetX = window.innerWidth / 2;
+  let targetY = window.innerHeight / 2;
+  let frames = 0, idleTime = 0, idleAnimation = null, idleFrame = 0;
+  const speed = 10;
+  const onMove = event => { targetX = event.clientX; targetY = event.clientY; };
+  document.addEventListener('pointermove', onMove, { passive: true });
+  const setSprite = (name, index = 0) => {
+    const sprites = onekoFrames[name] || onekoFrames.idle;
+    const [sx,sy] = sprites[index % sprites.length];
+    el.style.backgroundPosition = `${sx * 32}px ${sy * 32}px`;
+  };
+  const tick = () => {
+    frames++;
+    const dx = x - targetX, dy = y - targetY;
+    const dist = Math.hypot(dx, dy);
+    if (dist < 48) {
+      idleTime++;
+      if (idleTime > 10 && !idleAnimation && Math.random() < 1/200) {
+        idleAnimation = Math.random() < .5 ? 'sleeping' : 'scratch';
+        idleFrame = 0;
+      }
+      if (idleAnimation === 'sleeping') {
+        setSprite(idleFrame < 8 ? 'tired' : 'sleeping', Math.floor(idleFrame / 4));
+        if (idleFrame > 192) { idleAnimation = null; idleFrame = 0; }
+        else idleFrame++;
+      } else if (idleAnimation === 'scratch') {
+        setSprite('scratch', idleFrame++);
+        if (idleFrame > 9) { idleAnimation = null; idleFrame = 0; }
+      } else setSprite('idle');
+      return;
+    }
+    idleAnimation = null; idleFrame = 0;
+    if (idleTime > 1) {
+      setSprite('alert'); idleTime = Math.min(idleTime, 7) - 1;
+      return;
+    }
+    let direction = dy / dist > .5 ? 'N' : dy / dist < -.5 ? 'S' : '';
+    direction += dx / dist > .5 ? 'W' : dx / dist < -.5 ? 'E' : '';
+    setSprite(direction, frames);
+    x -= dx / dist * Math.min(speed, dist);
+    y -= dy / dist * Math.min(speed, dist);
+    x = Math.max(16, Math.min(window.innerWidth - 16, x));
+    y = Math.max(16, Math.min(window.innerHeight - 16, y));
+    el.style.left = `${x - 16}px`;
+    el.style.top = `${y - 16}px`;
+  };
+  setSprite('idle');
+  const timer = setInterval(tick, 100);
+  activeOneko = {el, timer, onMove};
+}
+
+// Add new mod definitions here. Each mod has a unique id, display name, description and optional apply(enabled) callback.
+const eliteMods = [
+  { id: 'oneko', name: 'Oneko Cat', description: 'the best cursor addon ever. use it. now.', apply: setOnekoMod }
+];
+const modSearch = document.getElementById('modSearch');
+const modDropdown = document.getElementById('modDropdown');
+const modToggle = document.getElementById('modDropdownToggle');
+const installedMods = document.getElementById('installedMods');
+const modCount = document.getElementById('modCount');
+let activeModIds;
+try { activeModIds = JSON.parse(localStorage.getItem('elite_enabled_mods') || '[]'); } catch { activeModIds = []; }
+if (!Array.isArray(activeModIds)) activeModIds = [];
+activeModIds = activeModIds.filter(id => eliteMods.some(mod => mod.id === id));
+function saveMods() { localStorage.setItem('elite_enabled_mods', JSON.stringify(activeModIds)); }
+function applyMods() {
+  eliteMods.forEach(mod => {
+    const enabled = activeModIds.includes(mod.id);
+    if (mod.className) document.body.classList.toggle(mod.className, enabled);
+    if (typeof mod.apply === 'function') mod.apply(enabled);
+  });
+}
+function renderMods() {
+  if (!modDropdown || !installedMods) return;
+  modDropdown.replaceChildren();
+  const query = (modSearch?.value || '').trim().toLowerCase();
+  const matches = eliteMods.filter(mod => (mod.name + ' ' + mod.description).toLowerCase().includes(query));
+  for (const mod of matches) {
+    const chosen = activeModIds.includes(mod.id);
+    const option = document.createElement('button');
+    option.type = 'button'; option.className = 'mod-option';
+    const label = document.createElement('span');
+    const name = document.createElement('strong'); name.textContent = mod.name;
+    const description = document.createElement('small'); description.textContent = mod.description;
+    label.append(name,description);
+    const state = document.createElement('span'); state.textContent = chosen ? '✓ Added' : '+ Add';
+    option.append(label,state);
+    option.addEventListener('click', () => {
+      activeModIds = chosen ? activeModIds.filter(id => id !== mod.id) : [...activeModIds, mod.id];
+      saveMods(); applyMods(); renderMods();
+      if (modSearch) modSearch.focus();
+    });
+    modDropdown.append(option);
+  }
+  if (!matches.length) { const empty = document.createElement('div'); empty.className = 'mod-empty'; empty.style.padding = '14px'; empty.textContent = 'No matching mods.'; modDropdown.append(empty); }
+  installedMods.replaceChildren();
+  if (!activeModIds.length) { const empty = document.createElement('div'); empty.className = 'mod-empty'; empty.textContent = 'No mods added yet.'; installedMods.append(empty); }
+  activeModIds.forEach(id => {
+    const mod = eliteMods.find(m => m.id === id); if (!mod) return;
+    const chip = document.createElement('div'); chip.className = 'mod-chip';
+    const label = document.createElement('span'); label.textContent = mod.name;
+    const remove = document.createElement('button'); remove.type='button'; remove.textContent='×'; remove.title = 'Remove ' + mod.name;
+    remove.addEventListener('click', () => { activeModIds = activeModIds.filter(x => x !== id); saveMods(); applyMods(); renderMods(); });
+    chip.append(label,remove); installedMods.append(chip);
+  });
+  if (modCount) modCount.textContent = activeModIds.length + ' installed';
+}
+function showModDropdown(show) { if (modDropdown) modDropdown.hidden = !show; modToggle?.setAttribute('aria-expanded', String(show)); }
+modSearch?.addEventListener('input', () => { renderMods(); showModDropdown(true); });
+modSearch?.addEventListener('focus', () => showModDropdown(true));
+modToggle?.addEventListener('click', () => showModDropdown(modDropdown.hidden));
+document.addEventListener('click', e => { if (!e.target.closest('.mod-picker')) showModDropdown(false); });
+applyMods(); renderMods();
