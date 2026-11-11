@@ -215,39 +215,6 @@ html, body {
 }
 #extensionsBtn { font-size: 20px; }
 
-/* Extensions side panel */
-.extensions-panel {
-  position: fixed; top: 93px; right: 10px; width: 200px; background: var(--glass-bg);
-  border: 1px solid var(--glass-border); border-radius: 12px; padding: 15px;
-  box-shadow: var(--glass-shadow); backdrop-filter: blur(15px); z-index: 10006;
-  transition: transform 0.3s, opacity 0.3s;
-}
-.extensions-panel.hidden { transform: translateX(250px); opacity: 0; pointer-events: none; }
-.ext-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; margin-bottom: 10px; }
-.ext-header h3 { margin: 0; font-size: 16px; }
-.ext-action { cursor: pointer; padding: 5px; opacity: 0.8; }
-.ext-action:hover { opacity: 1; transform: scale(1.1); }
-.ext-items { display: flex; flex-direction: column; gap: 10px; }
-.ext-item { padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; cursor: pointer; border: 1px solid transparent; transition: 0.2s; }
-.ext-item:hover { border-color: var(--accent); background: var(--glass-highlight); color: var(--text-btn); }
-.ext-item.active { border-color: #0f0; background: rgba(0,255,0,0.2); }
-
-#throwables-layer {
-  position: fixed; top: 93px; left: var(--sidebar-width); width: calc(100vw - var(--sidebar-width)); height: calc(100vh - 93px);
-  pointer-events: none; z-index: 9999; overflow: hidden;
-}
-
-/* Animations for throwables */
-.throw-anim { position: absolute; font-size: 40px; pointer-events: none; transform-origin: center; z-index: 10000; }
-@keyframes throwSpin { 0% { transform: translate(-50%, -50%) rotate(0deg) scale(0.5); } 100% { transform: translate(-50%, -50%) rotate(720deg) scale(1); } }
-@keyframes tomatoSplat { 0% { transform: scale(0.2); opacity: 0; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 0.9; } }
-@keyframes shatterFall { 0% { transform: translate(0, 0) rotate(0deg); opacity: 1; } 100% { transform: translate(var(--dx), 100vh) rotate(720deg); opacity: 0; } }
-
-.splatter { position: absolute; font-size: 50px; transform: translate(-50%, -50%); pointer-events: none; animation: tomatoSplat 0.3s ease-out forwards; }
-.axe-stuck { position: absolute; font-size: 50px; transform: translate(-50%, -50%) rotate(15deg); pointer-events: none; }
-.bottle-shatter { position: absolute; font-size: 50px; transform: translate(-50%, -50%); pointer-events: none; animation: tomatoSplat 0.2s ease-out forwards; filter: hue-rotate(90deg); }
-.bottle-piece { position: absolute; font-size: 20px; pointer-events: none; animation: shatterFall 1s forwards cubic-bezier(0.55, 0.085, 0.68, 0.53); }
-
 .tab {
   display: flex; align-items: center; padding: 6px 12px; background: rgba(0,0,0,0.2);
   border: 1px solid var(--glass-border); border-radius: 8px; cursor: pointer; min-width: 100px; max-width: 200px; gap: 8px;
@@ -281,3 +248,123 @@ iframe {
 .shortcut { display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: pointer; transition: 0.2s; }
 .shortcut:hover { transform: scale(1.1); }
 .shortcut img { width: 48px; height: 48px; border-radius: 12px; background: var(--glass-bg); padding: 10px; border: 1px solid var(--glass-border); }
+
+/* Consistent centered page imagery and theme scrollbars */
+html, body { background-position: center center; background-repeat: no-repeat; }
+body { background-position: center center; background-size: cover; }
+.page-container { scrollbar-width: thin; scrollbar-color: var(--accent) rgba(0,0,0,.22); scrollbar-gutter: stable; }
+*, *::before, *::after { box-sizing: border-box; }
+* { scrollbar-width: thin; scrollbar-color: var(--accent) rgba(0,0,0,.22); }
+*::-webkit-scrollbar { width: 12px; height: 12px; }
+*::-webkit-scrollbar-track { background: rgba(0,0,0,.22); border-radius: 999px; margin: 6px; }
+*::-webkit-scrollbar-thumb { background: var(--glass-highlight); border: 2px solid var(--glass-border); border-radius: 999px; min-height: 38px; }
+*::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+*::-webkit-scrollbar-corner { background: transparent; }
+.grid-item img { display: block; object-fit: cover; object-position: center center; }
+.shortcut img { object-fit: contain; object-position: center center; display: block; }
+.shortcut { text-align: center; }
+.shortcut span { text-align: center; }
+.sidebar-btn img { object-fit: contain; object-position: center; }
+.sidebar-btn svg { display: block; }
+/* Both static and animated background-image themes are centered */
+[data-theme="verity"], [data-theme="purple"] { background-position: center center !important; background-size: cover !important; background-repeat: no-repeat !important; }
+
+/* Separate home landing page */
+.landing-page { background: transparent; }
+.home-inner { min-height: 100%; max-width: 900px; margin: 0 auto; padding: clamp(35px, 7vh, 90px) 20px 65px; display:flex; flex-direction:column; align-items:center; }
+.home-logo { font-size: clamp(76px, 12vw, 132px); font-weight:300; letter-spacing:-.07em; margin: 0 0 30px; color: var(--text-main); line-height:1.2; transform-origin: center 75%; animation: eliteSway 6s ease-in-out infinite; }
+@keyframes eliteSway { 0%,100% { transform:rotate(-2deg) translateY(0); } 50% { transform:rotate(2deg) translateY(-7px); } }
+.news-panel { width:min(100%,760px); padding:clamp(22px,4vw,42px); background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:24px; box-shadow:var(--glass-shadow); backdrop-filter:blur(20px); text-align:center; }
+.news-heading { font-size:clamp(40px,6vw,60px); font-weight:300; padding-bottom:17px; margin-bottom:10px; border-bottom:1px solid var(--glass-border); }
+.news-entry { padding:20px 5px; border-bottom:1px solid var(--glass-border); }
+.news-entry:last-child { border-bottom:0; padding-bottom:3px; }
+.news-entry h3 { margin:0 0 9px; font-weight:600; font-size:20px; }
+.news-entry p { margin:0 auto; max-width:580px; font-size:15px; line-height:1.7; color:var(--text-main); opacity:.85; }
+.home-open-browser { margin-top:24px; padding:13px 30px; background:var(--glass-bg); border:1px solid var(--glass-border); box-shadow:var(--glass-shadow); border-radius:999px; color:var(--text-main); font:inherit; cursor:pointer; transition:transform .2s,filter .2s; }
+.home-open-browser:hover { transform:translateY(-3px); filter:brightness(1.2); }
+/* Settings: searchable multi-select mod manager */
+.mods-group { margin-top:20px; max-width:620px; }
+.mods-head { display:flex; justify-content:space-between; align-items:start; gap:10px; }
+.mods-head h3 { font-size:25px; margin:0 0 8px; }
+.mods-head p { font-size:13px; line-height:1.5; opacity:.82; margin:0 0 18px; }
+#modCount { white-space:nowrap; font-size:12px; padding:6px 10px; border:1px solid var(--glass-border); border-radius:999px; }
+.mod-picker { position:relative; display:flex; gap:0; }
+#modSearch { min-width:0; flex:1; background:rgba(0,0,0,.25); color:var(--text-main); border:1px solid var(--glass-border); border-radius:12px 0 0 12px; padding:13px; font:inherit; outline:none; }
+#modSearch::placeholder { color:var(--text-main); opacity:.65; }
+#modDropdownToggle { width:48px; background:var(--glass-bg); border:1px solid var(--glass-border); border-left:0; color:var(--text-main); border-radius:0 12px 12px 0; cursor:pointer; font-size:22px; }
+.mod-dropdown { position:absolute; top:calc(100% + 6px); left:0; right:0; z-index:10; max-height:230px; overflow-y:auto; border:1px solid var(--glass-border); border-radius:13px; background:var(--bg-color); box-shadow:0 14px 35px rgba(0,0,0,.4); }
+.mod-option { width:100%; display:flex; align-items:center; justify-content:space-between; gap:12px; background:transparent; color:var(--text-main); border:0; border-bottom:1px solid var(--glass-border); padding:12px 14px; cursor:pointer; text-align:left; font:inherit; }
+.mod-option:hover { background:var(--glass-highlight); }
+.mod-option small { opacity:.72; display:block; margin-top:4px; font-size:12px; }
+.mod-option > span:last-child { font-size:13px; white-space:nowrap; }
+.installed-mods { display:flex; flex-wrap:wrap; gap:9px; margin-top:17px; }
+.mod-chip { display:flex; align-items:center; gap:8px; border:1px solid var(--glass-border); border-radius:999px; background:rgba(0,0,0,.2); padding:8px 10px 8px 14px; font-size:13px; }
+.mod-chip button { border:0; color:var(--text-main); background:rgba(0,0,0,.2); width:24px; height:24px; border-radius:50%; cursor:pointer; }
+.mod-empty { font-size:13px; opacity:.7; }
+body.mod-compact-tabs .tab { max-width:145px; min-width:75px; padding:5px 8px; }
+body.mod-no-animations *,body.mod-no-animations *::before,body.mod-no-animations *::after { animation-duration:.001ms!important; transition-duration:.001ms!important; }
+body.mod-large-thumbnails .grid { grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); }
+@media(max-width:600px){.page-container{padding:22px}.home-inner{padding:55px 0 35px}.shortcuts{flex-wrap:wrap;justify-content:center}.mods-head{flex-wrap:wrap}}
+
+/* Oneko mod: 8x4 sprite sheet of 32px frames, with transparent click-through overlay */
+#elite-oneko {
+  position: fixed;
+  left: 16px;
+  top: 16px;
+  width: 32px;
+  height: 32px;
+  z-index: 2147483647;
+  pointer-events: none;
+  image-rendering: pixelated;
+  background-repeat: no-repeat;
+  background-size: 256px 128px;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,.25));
+}
+
+
+/* Games search and count */
+.games-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px 25px; margin:0 0 26px; }
+.games-heading { display:flex; align-items:center; flex-wrap:wrap; gap:14px; }
+#page2 .games-heading h2 { margin:0; padding:0; border:0; font-size:clamp(30px,3.6vw,42px); font-weight:600; }
+.games-count { border:1px solid var(--glass-border); border-radius:999px; padding:7px 12px; background:var(--glass-bg); box-shadow:var(--glass-shadow); font-size:13px; font-weight:600; white-space:nowrap; }
+.games-search-box { width:min(100%,390px); min-height:48px; display:flex; gap:10px; align-items:center; padding:0 13px; border:1px solid var(--glass-border); border-radius:16px; background:var(--glass-bg); box-shadow:var(--glass-shadow); backdrop-filter:blur(16px); transition:box-shadow .25s ease,border-color .25s ease,transform .25s ease; }
+.games-search-box:focus-within { border-color:var(--accent); box-shadow:var(--glass-shadow),0 0 0 3px rgba(255,255,255,.15); transform:translateY(-1px); }
+.games-search-box svg { width:20px; height:20px; flex-shrink:0; opacity:.85; }
+#gamesSearch { width:100%; min-width:0; flex:1; padding:12px 0; outline:0; border:0; background:transparent; color:var(--text-main); font:inherit; font-size:15px; text-shadow:inherit; }
+#gamesSearch::placeholder { color:var(--text-main); opacity:.65; }
+#gamesSearch::-webkit-search-cancel-button { display:none; }
+#gamesSearchClear { flex-shrink:0; width:28px; height:28px; border:0; border-radius:50%; color:var(--text-main); background:rgba(0,0,0,.18); cursor:pointer; font-size:22px; line-height:1; display:grid; place-items:center; }
+#gamesSearchClear:hover { background:rgba(255,255,255,.22); }
+#gamesSearchClear[hidden], #gamesNoResults[hidden], #grid1-container .grid-item[hidden] { display:none !important; }
+.games-no-results { padding:50px 16px; text-align:center; font-size:16px; opacity:.85; }
+#grid1-container .grid-item { transition:transform .26s ease,background .26s ease,box-shadow .26s ease; }
+@media (max-width:760px) { .games-search-box { width:100%; max-width:none; } }
+
+/* Sidebar edge cleanup: removes dark strips and any stray browser chrome peeking around the edge */
+.sidebar { box-sizing:border-box; overflow:hidden; border-right:1px solid var(--glass-border); box-shadow:none; isolation:isolate; }
+.sidebar-btn { box-sizing:border-box; position:relative; flex:0 0 44px; overflow:visible; background-clip:padding-box; }
+.sidebar-btn img { display:block; flex-shrink:0; vertical-align:middle; }
+.tabs, .chrome { box-sizing:border-box; }
+.tabs { height:48px; }
+/* Hide browser controls completely when the browser page is not active */
+body:not(.elite-browser-view) .tabs, body:not(.elite-browser-view) .chrome { visibility:hidden !important; pointer-events:none !important; }
+
+
+/* UI artifact fixes */
+.sidebar { overflow: hidden; }
+.sidebar-btn {
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  isolation: isolate;
+  background-clip: border-box;
+  box-shadow: none;
+  transform: translateZ(0);
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+}
+.sidebar-btn.active { box-shadow: var(--accent-glow); }
+.sidebar-btn img { display: block; position: relative; z-index: 1; }
+/* Never let proxy tab controls peek out on non-browser pages. */
+body:not(.elite-browser-view) #tabsBar,
+body:not(.elite-browser-view) #chromeBar,
+body:not(.elite-browser-view) #tabsNewBtn,
+body:not(.elite-browser-view) #closeBtn { display: none !important; }
