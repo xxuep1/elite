@@ -15,22 +15,25 @@
 <body data-theme="frutiger">
 
 <div class="sidebar">
-  <div class="sidebar-btn active" id="nav-home" title="Home Proxy">
-    <img src="https://raw.githubusercontent.com/xxuep/xxuep-icons/main/house.png" style="filter: drop-shadow(0px 1px 2px rgba(0,0,0,0.5));" width="30" height="30" alt="Home" />
+  <div class="sidebar-btn active" id="nav-home" title="Home">
+    <img src="https://raw.githubusercontent.com/xxuep/elite/main/homee.png" style="filter: drop-shadow(0px 1px 2px rgba(0,0,0,0.5));" width="30" height="30" alt="Home" />
+  </div>
+  <div class="sidebar-btn" id="nav-browser" title="Proxy Browser">
+    <img src="https://raw.githubusercontent.com/xxuep/elite/main/browser.png" style="filter: drop-shadow(0px 1px 2px rgba(0,0,0,0.5));" width="30" height="30" alt="Browser" />
   </div>
   <div class="sidebar-btn" id="nav-page2" title="Grid 1">
     <img src="https://raw.githubusercontent.com/xxuep/xxuep-icons/main/games.png" style="filter:  drop-shadow(0px 1px 2px rgba(0,0,0,0.5));" width="30" height="30" alt="Grid 1" />
   </div>
-  <div class="sidebar-btn" id="nav-page3" title="Grid 2">
+  <!-- <div class="sidebar-btn" id="nav-page3" title="Grid 2">
     <img src="https://raw.githubusercontent.com/xxuep/xxuep-icons/main/movies.png" style="filter: drop-shadow(0px 1px 2px rgba(0,0,0,0.5));" width="30" height="30" alt="Grid 2" />
-  </div>
+  </div> -->
   <div class="sidebar-btn" id="nav-settings" title="Settings">
     <img src="https://raw.githubusercontent.com/xxuep/xxuep-icons/main/gear.png" style="filter: drop-shadow(0px 1px 2px rgba(0,0,0,0.5));" width="30" height="30" alt="Settings" />
   </div>
   <div class="sidebar-btn" id="nav-credits" title="Credits">
     <img src="https://raw.githubusercontent.com/xxuep/xxuep-icons/main/information.png" style="filter: drop-shadow(0px 1px 2px rgba(0,0,0,0.5));" width="40" height="40" alt="Credits" />
   </div>
-</div>
+</div> 
 
 <div id="videoOverlay" class="video-overlay">
   <div class="video-shell">
@@ -48,9 +51,39 @@
   </div>
 </div>
 
+<main id="home-page" class="page-container landing-page">
+  <div class="home-inner">
+    <h1 class="home-logo">elite</h1>
+    <section class="news-panel">
+      <div class="news-heading">news</div>
+      <article class="news-entry">
+        <h3>welcome to elite</h3>
+        <p>yooo wsp peoples its ya boy xxuep i was given full access to elite im now updating it often.</p>
+      </article>
+      <article class="news-entry">
+        <h3>updates</h3>
+        <p>made a home page and seperated the browser. removed movies cause i was NOT bouta add allat. added more minecraft games, fixed verity wallpaper. I also added a cool mod system. turn on oneko cat now in settings.</p>
+      </article>
+      <article class="news-entry">
+        <h3>why are the games the same on triton and t!tan?</h3>
+        <p>triton STOLE from elite, t!tan asked. in this situation, elite and xxuep are the OWNERS of the whole game list.</p>
+      </article>
+    </section>
+    <button type="button" id="home-open-browser" class="home-open-browser">open browser →</button>
+  </div>
+</main>
+
 <div id="page2" class="page-container">
-  <h2>games</h2>
+  <div class="games-header">
+    <div class="games-heading"><h2>games</h2><span class="games-count" id="gamesCount" aria-live="polite">0 games</span></div>
+    <div class="games-search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+      <input id="gamesSearch" type="search" placeholder="Search games..." autocomplete="off" spellcheck="false" aria-label="Search games">
+      <button type="button" id="gamesSearchClear" aria-label="Clear game search" title="Clear search" hidden>×</button>
+    </div>
+  </div>
   <div class="grid" id="grid1-container"></div>
+  <p id="gamesNoResults" class="games-no-results" hidden>No games found. Try another search.</p>
 </div>
 
 <div id="page3" class="page-container">
@@ -84,6 +117,15 @@
     </select>
     <input type="color" id="customColorPicker" value="#005a9e" style="display:none; margin-top:15px; width:100%; height:40px; cursor:pointer;" title="Choose your custom theme color">
   </div>
+  <section class="settings-group mods-group">
+    <div class="mods-head"><div><h3>mods</h3><p>Find and add multiple mods. Toggle installed mods anytime.</p></div><span id="modCount">0 installed</span></div>
+    <div class="mod-picker">
+      <input type="search" id="modSearch" placeholder="Search mods..." autocomplete="off" aria-label="Search mods">
+      <button type="button" id="modDropdownToggle" aria-label="Show available mods" aria-expanded="false">⌄</button>
+      <div id="modDropdown" class="mod-dropdown" hidden></div>
+    </div>
+    <div id="installedMods" class="installed-mods"></div>
+  </section>
 </div>
 
 <div id="credits-page" class="page-container">
@@ -116,30 +158,9 @@
     <img src="https://raw.githubusercontent.com/feathericons/feather/master/icons/x.svg" style="filter: var(--icon-filter);" width="20" height="20" alt="Close Tab" />
   </div>
   <div class="address" id="address">elite://newtab</div>
-  <div class="btn" id="extensionsBtn" title="Extensions">
-    <span>🍅</span>
-  </div>
 </div>
 
-<!-- <div id="extensions-panel" class="extensions-panel hidden">
-  <div class="ext-header">
-    <h3>Extensions</h3>
-    <div>
-      <span id="ext-reset" class="ext-action" title="Reset Objects">🔄</span>
-      <span id="ext-close" class="ext-action" title="Close Panel">✕</span>
-    </div>
-  </div>
-  <div class="ext-items">
-    <div class="ext-item" id="ext-tomato">🍅 Tomato</div>
-    <div class="ext-item" id="ext-axe">🪓 Axe</div>
-    <div class="ext-item" id="ext-bottle">🍾 Bottle</div>
 
-    <div class="ext-item" id="ext-oneko" style="display: flex; align-items: center; gap: 8px;">
-      <img src="https://raw.githubusercontent.com/adryd325/oneko.js/main/oneko.gif" style="width: 16px; height: 16px; object-fit: contain; image-rendering: pixelated;" alt="Oneko Cat Icon">
-      Oneko Cat
-    </div>
-  </div>
-</div> -->
 
 <div class="newtab" id="newtab">
   <h1>elite</h1>
@@ -148,7 +169,7 @@
 </div>
 
 <div id="iframe-loading-bg"></div>
-<div id="throwables-layer"></div>
+
 <iframe id="viewer"></iframe>
 
 <script src="elite.js"></script>
