@@ -51,6 +51,52 @@
   --accent-glow: 0 0 15px rgba(255, 204, 0, 0.8);
   --icon-filter: none;
 }
+
+[data-theme="city"] {
+  --bg-color: #000000;
+  --bg-gradient: url('https://raw.githubusercontent.com/xxuep1/wallpapers-8k/main/city.jpg'); /* Replaceable Image Link */
+  --glass-bg: linear-gradient(180deg, #162058 0%, #060827 100%);
+  --glass-border: #005eac;
+  --glass-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.4), 0 4px 15px rgba(25, 26, 88, 0.3);
+  --glass-highlight: linear-gradient(180deg, #050a53 0%, #216abe 100%);
+  --text-main: #ffffff;
+  --text-muted: #ffffff;
+  --text-btn: #ffffff;
+  --accent: #ffffff;
+  --accent-glow: 0 0 15px rgba(0, 162, 255, 0.8);
+  --icon-filter: none;
+}
+
+[data-theme="shapes"] {
+  --bg-color: #000000;
+  --bg-gradient: url('https://raw.githubusercontent.com/xxuep1/wallpapers-8k/main/shapes.jpg'); /* Replaceable Image Link */
+  --glass-bg: linear-gradient(180deg, #3b3b3b 0%, #141414 100%);
+  --glass-border: #000000;
+  --glass-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.4), 0 4px 15px rgba(25, 26, 88, 0.3);
+  --glass-highlight: linear-gradient(180deg, #868686 0%, #383838 100%);
+  --text-main: #ffffff;
+  --text-muted: #ffffff;
+  --text-btn: #ffffff;
+  --accent: #ffffff;
+  --accent-glow: 0 0 15px rgba(66, 66, 66, 0.8);
+  --icon-filter: none;
+}
+
+[data-theme="palmtrees"] {
+  --bg-color: #00cebd;
+  --bg-gradient: url('https://raw.githubusercontent.com/xxuep1/wallpapers-8k/main/palmtrees.jpg'); /* Replaceable Image Link */
+  --glass-bg: linear-gradient(180deg, #4dfff6 0%, #00ccff 100%);
+  --glass-border: #0099ff;
+  --glass-shadow: inset 0 1px 2px rgba(0, 199, 149, 0.4), 0 4px 15px rgba(19, 163, 182, 0.3);
+  --glass-highlight: linear-gradient(180deg, #0dad93 0%, #06534d 100%);
+  --text-main: #000000;
+  --text-muted: #000000;
+  --text-btn: #000000;
+  --accent: #ffffff;
+  --accent-glow: 0 0 15px rgba(0, 255, 85, 0.8);
+  --icon-filter: none;
+}
+
 [data-theme="verity"] .tabs, [data-theme="verity"] .chrome {
   background: rgba(0, 0, 0, 0.8); /* Overlay at top with 80% transparency */
 }
