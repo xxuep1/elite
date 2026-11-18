@@ -436,7 +436,7 @@ const movieGridData = [
     title: "Backrooms (2026)",
     thumb: "https://raw.githubusercontent.com/xxuep/movie-thumbnails/main/backroomsmoviecool.jpe",
     embedUrl: "https://drive.google.com/file/d/1-K2eTaok437rd6bDzPotVfWKfS1o-kAw/preview"
-  }
+  },
 ];
 
 // ======= elements =======
@@ -460,6 +460,7 @@ const pageContainers = {
   browser: { btn: document.getElementById('nav-browser') }, 
   page2: { btn: document.getElementById('nav-page2'), el: document.getElementById('page2') },
   page3: { btn: document.getElementById('nav-page3'), el: document.getElementById('page3') },
+  page4: { btn: document.getElementById('nav-page4'), el: document.getElementById('page4') },
   settings: { btn: document.getElementById('nav-settings'), el: document.getElementById('settings-page') },
   credits: { btn: document.getElementById('nav-credits'), el: document.getElementById('credits-page') }
 };
@@ -546,7 +547,7 @@ function switchView(viewName) {
   if (isBrowser) updateTopOffsets();
 }
 
-for (const name of ['home','browser','page2','page3','settings','credits']) {
+for (const name of ['home','browser','page2','page3','page4','settings','credits']) {
   const page = pageContainers[name];
   if (page && page.btn) page.btn.addEventListener('click', () => switchView(name));
 }
@@ -1096,3 +1097,230 @@ modSearch?.addEventListener('focus', () => showModDropdown(true));
 modToggle?.addEventListener('click', () => showModDropdown(modDropdown.hidden));
 document.addEventListener('click', e => { if (!e.target.closest('.mod-picker')) showModDropdown(false); });
 applyMods(); renderMods();
+
+
+/* =====================================================================
+   SIDEBAR OPEN / CLOSE  (CSS does the smooth part, this just flips a class)
+   ===================================================================== */
+(function eliteSidebar() {
+  const root = document.documentElement;
+  const toggle = document.getElementById('sidebarToggle');
+  const KEY = 'elite_sidebar_collapsed';
+  function set(collapsed, save = true) {
+    root.classList.toggle('sidebar-collapsed', collapsed);
+    if (toggle) {
+      toggle.setAttribute('aria-expanded', String(!collapsed));
+      toggle.setAttribute('aria-label', collapsed ? 'Open sidebar' : 'Close sidebar');
+    }
+    if (save) { try { localStorage.setItem(KEY, collapsed ? '1' : '0'); } catch {} }
+    // keep the browser iframe sizing correct while the width animates
+    const t0 = performance.now();
+    (function follow(now) {
+      if (typeof updateTopOffsets === 'function') updateTopOffsets();
+      if (now - t0 < 800) requestAnimationFrame(follow);
+    })(t0);
+  }
+  toggle?.addEventListener('click', () => set(!root.classList.contains('sidebar-collapsed')));
+  let saved = false; try { saved = localStorage.getItem(KEY) === '1'; } catch {}
+  if (saved) {
+    // start collapsed without playing the animation
+    root.style.transition = 'none';
+    set(true, false);
+    requestAnimationFrame(() => requestAnimationFrame(() => { root.style.transition = ''; }));
+  }
+})();
+
+/* =====================================================================
+   GRID CARD PHYSICS (spring tilt + lift + press + glare), same feel as buttonconcept.mp4
+   ===================================================================== */
+(function eliteCardPhysics() {
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const STIFF = 190, DAMP = 13;          // lower damping = more wobble
+  const MAX_TILT = 13, HOVER_SCALE = 1.055, PRESS_SCALE = .965;
+  const states = new Map();              // card -> state
+  let hovered = null, raf = 0, last = 0;
+
+  function stateOf(card) {
+    let s = states.get(card);
+    if (!s) {
+      s = { card, hover: false, down: false,
+        rx: {x:0,v:0,t:0}, ry: {x:0,v:0,t:0}, sc: {x:1,v:0,t:1}, px: {x:0,v:0,t:0}, py: {x:0,v:0,t:0} };
+      states.set(card, s);
+    }
+    return s;
+  }
+  const ON = new Set();
+  function wake(s) { ON.add(s); if (!raf) { last = performance.now(); raf = requestAnimationFrame(tick); } }
+  function disabled() { return document.body.classList.contains('mod-no-animations'); }
+
+  function aim(s, e) {
+    const r = s.card.getBoundingClientRect();
+    const nx = Math.max(-.5, Math.min(.5, (e.clientX - r.left) / r.width - .5));
+    const ny = Math.max(-.5, Math.min(.5, (e.clientY - r.top) / r.height - .5));
+    s.ry.t = nx * 2 * MAX_TILT;
+    s.rx.t = -ny * 2 * MAX_TILT;
+    s.px.t = nx * 2; s.py.t = ny * 2;
+    s.sc.t = s.down ? PRESS_SCALE : HOVER_SCALE;
+  }
+  function enter(card, e) {
+    const s = stateOf(card); s.hover = true;
+    card.classList.add('is-tilting');
+    s.sc.v += 1.1;                        // little pop on entry
+    aim(s, e); wake(s);
+  }
+  function leave(card) {
+    const s = stateOf(card); s.hover = false; s.down = false;
+    card.classList.remove('is-tilting');
+    s.rx.t = s.ry.t = s.px.t = s.py.t = 0; s.sc.t = 1;
+    s.sc.v -= .6;                         // slight undershoot on exit
+    wake(s);
+  }
+
+  document.addEventListener('pointermove', e => {
+    if (e.pointerType === 'touch' || disabled()) return;
+    const card = e.target.closest && e.target.closest('.grid-item');
+    if (card !== hovered) {
+      if (hovered) leave(hovered);
+      hovered = card || null;
+      if (hovered) enter(hovered, e);
+    } else if (hovered) {
+      aim(stateOf(hovered), e); wake(stateOf(hovered));
+    }
+  }, { passive: true });
+  document.addEventListener('pointerleave', () => { if (hovered) { leave(hovered); hovered = null; } });
+  window.addEventListener('blur', () => { if (hovered) { leave(hovered); hovered = null; } });
+  document.addEventListener('pointerdown', e => {
+    if (disabled()) return;
+    const card = e.target.closest && e.target.closest('.grid-item'); if (!card) return;
+    const s = stateOf(card); s.down = true; s.sc.t = PRESS_SCALE; wake(s);
+  });
+  const release = () => states.forEach(s => { if (s.down) { s.down = false; s.sc.t = s.hover ? HOVER_SCALE : 1; s.sc.v += .5; wake(s); } });
+  document.addEventListener('pointerup', release);
+  document.addEventListener('pointercancel', release);
+
+  function step(p, dt) {
+    const a = STIFF * (p.t - p.x) - DAMP * p.v;
+    p.v += a * dt; p.x += p.v * dt;
+  }
+  const settled = p => Math.abs(p.t - p.x) < .0008 && Math.abs(p.v) < .01;
+
+  function tick(now) {
+    const dt = Math.min(.032, (now - last) / 1000 || .016); last = now;
+    for (const s of [...ON]) {
+      step(s.rx, dt); step(s.ry, dt); step(s.sc, dt); step(s.px, dt); step(s.py, dt);
+      const st = s.card.style;
+      const lift = (s.sc.x - 1) * 150;
+      st.transform = `perspective(900px) translate3d(0,${(-lift).toFixed(2)}px,0) rotateX(${s.rx.x.toFixed(2)}deg) rotateY(${s.ry.x.toFixed(2)}deg) scale(${s.sc.x.toFixed(4)})`;
+      st.setProperty('--mx', ((s.px.x / 2 + .5) * 100).toFixed(1) + '%');
+      st.setProperty('--my', ((s.py.x / 2 + .5) * 100).toFixed(1) + '%');
+      st.setProperty('--px', s.px.x.toFixed(3)); st.setProperty('--py', s.py.x.toFixed(3));
+      st.setProperty('--glare', Math.max(0, Math.min(1, (s.sc.x - 1) / (HOVER_SCALE - 1))).toFixed(3));
+      if (!s.hover && !s.down && [s.rx, s.ry, s.sc, s.px, s.py].every(settled)) {
+        st.transform = ''; st.removeProperty('--glare'); st.removeProperty('--px'); st.removeProperty('--py');
+        ON.delete(s);
+      }
+    }
+    raf = ON.size ? requestAnimationFrame(tick) : 0;
+  }
+})();
+
+
+/* =====================================================================
+   APPS PAGE: a second page that works exactly like the games page.
+   Add entries to grid3Data (same shape as the games list).
+   ===================================================================== */
+const grid3Data = [
+  { title: "Gn-Math", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/gnmathh.jpg", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/gn.html" },
+  { title: "Horizon", img: "https://raw.githubusercontent.com/xxuep/xxuep-icons/main/horizonbigger.png", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/horizon.html" },
+  { title: "T!tan (a, a)", img: "https://raw.githubusercontent.com/xxuep/xxuep-icons/main/titanlogo.png", htmlUrl: "https://raw.githubusercontent.com/sad-shady/sad-project/main/homework-2-27.html" },
+  { title: "UGS", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/ugss.png", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/ugs.html" },
+  { title: "Zetify", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/zetifyy.png", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/zetify.html" },
+];
+(function setupAppsPage() {
+  buildGrid('grid3-container', grid3Data);
+  const input = document.getElementById('appsSearch');
+  const clear = document.getElementById('appsSearchClear');
+  const count = document.getElementById('appsCount');
+  const none = document.getElementById('appsNoResults');
+  const cards = [...document.querySelectorAll('#grid3-container .grid-item')];
+  const index = cards.map((card, i) => ({
+    card,
+    name: grid3Data[i].title.toLocaleLowerCase(),
+    compact: grid3Data[i].title.toLocaleLowerCase().replace(/[^a-z0-9]/g, '')
+  }));
+  function filter() {
+    const query = (input?.value || '').trim().toLocaleLowerCase();
+    const tokens = query.split(/\s+/).filter(Boolean);
+    const compact = query.replace(/[^a-z0-9]/g, '');
+    let visible = 0;
+    for (const app of index) {
+      const ok = !query || tokens.every(t => app.name.includes(t)) || (compact && app.compact.includes(compact));
+      app.card.hidden = !ok;
+      if (ok) visible++;
+    }
+    if (count) count.textContent = query ? `${visible} of ${cards.length} apps` : `${cards.length} apps`;
+    if (none) {
+      none.hidden = visible !== 0;
+      none.textContent = cards.length ? 'No apps found. Try another search.' : 'Nothing here yet. Add entries to grid3Data in elite.js.';
+    }
+    if (clear) clear.hidden = !query;
+  }
+  input?.addEventListener('input', filter);
+  input?.addEventListener('keydown', e => { if (e.key === 'Escape') { input.value = ''; filter(); input.blur(); } });
+  clear?.addEventListener('click', () => { input.value = ''; filter(); input.focus(); });
+  filter();
+})();
+
+/* =====================================================================
+   SELECT DROPDOWNS -> same look as the mods picker
+   The real <select> stays in the page (hidden) as the source of truth.
+   ===================================================================== */
+(function eliteSelectPickers() {
+  const pickers = [];
+  document.querySelectorAll('.settings-group select').forEach(select => {
+    const wrap = document.createElement('div');
+    wrap.className = 'mod-picker select-picker';
+    const input = document.createElement('input');
+    input.type = 'text'; input.readOnly = true; input.className = 'picker-input';
+    input.setAttribute('aria-haspopup', 'listbox');
+    input.setAttribute('aria-label', select.getAttribute('aria-label') || (document.querySelector(`label[for="${select.id}"]`)?.textContent.trim()) || 'Select');
+    const toggle = document.createElement('button');
+    toggle.type = 'button'; toggle.className = 'picker-toggle'; toggle.textContent = '\u2304';
+    toggle.setAttribute('aria-expanded', 'false'); toggle.setAttribute('aria-label', 'Show options');
+    const menu = document.createElement('div');
+    menu.className = 'mod-dropdown'; menu.hidden = true; menu.setAttribute('role', 'listbox');
+    wrap.append(input, toggle, menu);
+    select.classList.add('native-hidden');
+    select.after(wrap);
+
+    const show = on => { menu.hidden = !on; toggle.setAttribute('aria-expanded', String(on)); };
+    function sync() {
+      const current = select.options[select.selectedIndex];
+      input.value = current ? current.textContent : '';
+      menu.replaceChildren();
+      [...select.options].forEach(opt => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'mod-option' + (opt.value === select.value ? ' is-current' : '');
+        b.setAttribute('role', 'option'); b.setAttribute('aria-selected', String(opt.value === select.value));
+        const label = document.createElement('span');
+        const name = document.createElement('strong'); name.textContent = opt.textContent;
+        label.append(name);
+        const state = document.createElement('span'); state.textContent = opt.value === select.value ? '\u2713 Selected' : '';
+        b.append(label, state);
+        b.addEventListener('click', () => {
+          select.value = opt.value;
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+          sync(); show(false);
+        });
+        menu.append(b);
+      });
+    }
+    input.addEventListener('click', () => show(menu.hidden));
+    input.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') { e.preventDefault(); show(true); } if (e.key === 'Escape') show(false); });
+    toggle.addEventListener('click', () => show(menu.hidden));
+    select.addEventListener('change', sync);
+    pickers.push({ wrap, show, sync });
+    sync();
+  });
+  document.addEventListener('click', e => { pickers.forEach(p => { if (!p.wrap.contains(e.target)) p.show(false); }); });
+})();
