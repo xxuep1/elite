@@ -390,6 +390,7 @@ const grid1Data = [
   { title: "Hanger 2", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/hanger22.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/hanger-2.html" },
   { title: "Happy Wheels", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/happywheelss.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/happy-wheels.html" },
   { title: "Helix Jump", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/helixjumpp.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/helix-jump.html" },
+  { title: "Hello Neighbor Alpha 1", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/hnalpha11.jpg", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/hnalpha1.html" },
   { title: "Highway Traffic", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/highwaytrafficc.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/highway-traffic.html" },
   { title: "Hill Climb Racing Lite", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/hillclimblitee.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/hill-climb-racing-lite.html" },
   { title: "Hole.io", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/holeioo.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/hole-io.html" },
@@ -1623,6 +1624,7 @@ applyMods(); renderMods();
    Add entries to grid3Data (same shape as the games list).
    ===================================================================== */
 const grid3Data = [
+  { title: "Duck Math", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/duckmath.jpg", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/duck.html" },
   { title: "Gn-Math", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/gnmathh.jpg", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/gn.html" },
   { title: "Horizon", img: "https://raw.githubusercontent.com/xxuep/xxuep-icons/main/horizonbigger.png", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/horizon.html" },
   { title: "HTML Editor", img: "https://raw.githubusercontent.com/xxuep/xxuep-icons/main/htmleditor.png", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/live-code-editor.html" },
@@ -1699,7 +1701,7 @@ const grid3Data = [
    ===================================================================== */
 (() => {
 'use strict';
-const ICONS = ['https://raw.githubusercontent.com/xxuep1/randomicons/main/googleclassroom.png','https://raw.githubusercontent.com/xxuep1/randomicons/main/clever.png','https://raw.githubusercontent.com/xxuep1/randomicons/main/ixl.png','https://raw.githubusercontent.com/xxuep1/randomicons/main/khanacademy.png','🔥','⭐','🎧','📚','🧩','🛰️','🦊','🐼','💎','🌙','🍀','🎯','🧠','🛡️','🌈','👾'];
+const ICONS = ['https://raw.githubusercontent.com/xxuep1/randomicons/main/googleclassroom.png','https://raw.githubusercontent.com/xxuep1/randomicons/main/clever.png','https://raw.githubusercontent.com/xxuep1/randomicons/main/ixl.png','https://raw.githubusercontent.com/xxuep1/randomicons/main/khanacademy.png'];
 
 const LS = localStorage, q = s => document.querySelector(s);
 const mk = (t, c, h) => { const e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; };
@@ -1731,20 +1733,34 @@ const PREV = {
   standard: '<div class="lp lp-std"><i class="a"></i><i class="b"></i></div>',
   desktop: '<div class="lp lp-dsk"><i class="a"></i><i class="b"></i><i class="c"></i></div>'
 };
-function layoutCards(cur, pick) {
-  const wrap = mk('div', 'es-layouts');
+function syncLayoutCards() {          // every live switcher always shows the layout that is really active
+  const now = get('elite_layout', 'standard');
+  document.querySelectorAll('.es-layouts.live .es-lay').forEach(c => c.classList.toggle('sel', c.dataset.id === now));
+}
+function layoutCards(cur, pick, live) {
+  const wrap = mk('div', 'es-layouts' + (live ? ' live' : ''));
   [['standard', 'Standard', 'Sidebar and pages'], ['desktop', 'Desktop', 'Windows and a taskbar']].forEach(([id, t, s]) => {
     const c = mk('button', 'es-lay' + (id === cur ? ' sel' : ''), `<span class="es-chk">✓</span>${PREV[id]}<b>${t}</b><small>${s}</small>`);
-    c.type = 'button';
-    c.onclick = () => { wrap.querySelectorAll('.es-lay').forEach(x => x.classList.toggle('sel', x === c)); pick(id); };
+    c.type = 'button'; c.dataset.id = id;
+    c.onclick = () => { wrap.querySelectorAll('.es-lay').forEach(x => x.classList.toggle('sel', x === c)); pick(id); if (live) syncLayoutCards(); };
     wrap.appendChild(c);
   });
   return wrap;
 }
-function switchLayout(id) {          // a clean reload keeps both layouts completely untouched
-  set('elite_layout', id);
-  document.body.classList.add('es-leaving');
-  setTimeout(() => location.reload(), 380);
+let switching = false, deskOff = null;
+function switchLayout(id) {          // swaps live behind a loading screen (no reload, so about:blank cloaks never go blank)
+  if (switching || id === get('elite_layout', 'standard')) { syncLayoutCards(); return; }
+  switching = true; set('elite_layout', id); syncLayoutCards();
+  const ov = mk('div', 'es-loading', '<div class="es-spin"></div><b>switching layout…</b>');
+  document.body.appendChild(ov);
+  requestAnimationFrame(() => ov.classList.add('on'));
+  setTimeout(() => {
+    try {
+      if (id === 'desktop') { if (!deskOff) deskOff = initDesktop(); }
+      else if (deskOff) { deskOff(); deskOff = null; }
+    } catch (err) { console.error('layout switch failed', err); }
+    setTimeout(() => { ov.classList.remove('on'); setTimeout(() => { ov.remove(); switching = false; }, 350); }, 500);
+  }, 380);
 }
 
 /* ---------- setup popup ---------- */
@@ -1776,7 +1792,9 @@ function setup(done) {
 
 /* ---------- desktop ---------- */
 function initDesktop() {
-  const B = document.body; B.classList.add('layout-desktop');
+  const B = document.body;
+  if (typeof switchView === 'function') switchView('home');   // reset whatever standard page/browser was showing
+  B.classList.add('layout-desktop');
   const dsk = mk('div', 'dsk', '<div class="dsk-clock"><div class="dsk-time"></div><div class="dsk-date"></div><div class="dsk-day"></div></div>');
   B.appendChild(dsk);
   const tE = q('.dsk-time'), dE = q('.dsk-date'), wE = q('.dsk-day');
@@ -1784,7 +1802,7 @@ function initDesktop() {
     tE.textContent = n.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
     dE.textContent = n.toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' });
     wE.textContent = n.toLocaleDateString([], { weekday: 'long' }); };
-  tick(); setInterval(tick, 1000);
+  tick(); const tickId = setInterval(tick, 1000);
 
   // every sidebar page becomes an app (the page elements are moved, not copied, so they stay untouched)
   const APPS = [['home','Home','home-page','nav-home'],['browser','Browser','','nav-browser'],['games','Games','page2','nav-page2'],['apps','Apps','page4','nav-page4'],['settings','Settings','settings-page','nav-settings'],['credits','Credits','credits-page','nav-credits']]
@@ -1825,7 +1843,7 @@ function initDesktop() {
     const p = mk('div', 'tb-panel'); p.dataset.k = kind; panel = p; showTb();
     if (kind === 'home') {
       p.innerHTML = '<h3>layout</h3><p>switch how elite looks</p>';
-      p.appendChild(layoutCards('desktop', id => { if (id !== 'desktop') switchLayout(id); }));
+      p.appendChild(layoutCards('desktop', id => { if (id !== 'desktop') switchLayout(id); }, true));
     } else {
       p.innerHTML = '<input class="tb-q" placeholder="Search apps..." spellcheck="false"><div class="tb-res"></div>';
       const inp = p.querySelector('.tb-q'), res = p.querySelector('.tb-res');
@@ -1838,8 +1856,10 @@ function initDesktop() {
   }
   tb.querySelector('.tb-home').onclick = e => { e.stopPropagation(); openPanel('home'); };
   tb.querySelector('.tb-search').onclick = e => { e.stopPropagation(); openPanel('search'); };
-  addEventListener('pointerdown', e => { if (panel && !panel.contains(e.target) && !tb.contains(e.target)) closePanel(); });
-  addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
+  const onPD = e => { if (panel && !panel.contains(e.target) && !tb.contains(e.target)) closePanel(); };
+  addEventListener('pointerdown', onPD);
+  const onKD = e => { if (e.key === 'Escape') closePanel(); };
+  addEventListener('keydown', onKD);
 
   /* windows */
   let zTop = 10, cascade = 0;
@@ -1931,15 +1951,50 @@ function initDesktop() {
     };
     dsk.appendChild(d);
   });
+
+  /* teardown: hands every moved element back to the standard layout */
+  return function teardown() {
+    clearInterval(tickId); clearTimeout(tbTimer);
+    removeEventListener('pointerdown', onPD); removeEventListener('keydown', onKD);
+    Object.values(wins).forEach(w => {
+      if (w.app.id === 'browser') unmountBrowser();
+      else { w.app.page.classList.remove('in-win'); w.app.page.style.display = 'none'; document.body.appendChild(w.app.page); }
+      w.el.remove(); delete wins[w.app.id];
+    });
+    if (panel) { panel.remove(); panel = null; }
+    const m = q('#musicBtn'), sb = q('#sidebar'); if (m) (sb || document.body).appendChild(m);   // back to the bottom of the sidebar
+    dsk.remove(); hz.remove(); tb.remove();
+    B.classList.remove('layout-desktop');
+    if (typeof switchView === 'function') switchView('home');
+  };
 }
 
 /* ---------- start ---------- */
 applyIdentity();
-const start = layout => { if (layout === 'desktop') initDesktop(); };
+const start = layout => { if (layout === 'desktop') deskOff = initDesktop(); };
 if (!get('elite_setup_done')) setup(start); else start(get('elite_layout', 'standard'));
 // settings page gets the layout switcher too (so you can change it from either layout)
 const sp = q('#settings-page');
 if (sp) { const g = mk('div', 'settings-group', '<label>Layout</label>'); g.style.marginTop = '20px';
-  g.appendChild(layoutCards(get('elite_layout', 'standard'), id => { if (id !== get('elite_layout', 'standard')) switchLayout(id); }));
-  const mods = sp.querySelector('.mods-group'); sp.insertBefore(g, mods || null); }
+  g.appendChild(layoutCards(get('elite_layout', 'standard'), id => { if (id !== get('elite_layout', 'standard')) switchLayout(id); }, true));
+  const mods = sp.querySelector('.mods-group'); sp.insertBefore(g, mods || null);
+
+  // tab icon + name (same choices as the setup popup, applied live)
+  const t = mk('div', 'settings-group tab-id', '<label>Tab icon &amp; name</label>'); t.style.marginTop = '20px';
+  const grid = mk('div', 'es-icons'), nm = mk('input', 'es-name'), cu = mk('input', 'es-name'), rs = mk('button', 'tab-id-reset', 'reset to default');
+  nm.placeholder = 'tab name'; nm.maxLength = 40; nm.spellcheck = false; nm.value = get('elite_tab_name', '');
+  cu.placeholder = 'custom icon link (https://...)'; cu.spellcheck = false; rs.type = 'button';
+  const cur = () => get('elite_tab_icon', ICONS[0]);
+  const mark = () => grid.querySelectorAll('.es-ic').forEach(x => x.classList.toggle('sel', x.dataset.ic === cur()));
+  ICONS.forEach(ic => {
+    const b = mk('button', 'es-ic'); b.type = 'button'; b.dataset.ic = ic;
+    if (/^(https?:|data:)/.test(ic)) { const i = new Image(); i.src = ic; b.appendChild(i); } else b.textContent = ic;
+    b.onclick = () => { set('elite_tab_icon', ic); favicon(ic); cu.value = ''; mark(); };
+    grid.appendChild(b);
+  });
+  nm.oninput = () => { const v = nm.value.trim(); set('elite_tab_name', v || 'elite'); document.title = v || 'Home - Classroom'; };
+  cu.onchange = () => { const v = cu.value.trim(); if (!/^(https?:|data:)/.test(v)) return; set('elite_tab_icon', v); favicon(v); mark(); };
+  rs.onclick = () => { set('elite_tab_icon', ICONS[0]); set('elite_tab_name', 'elite'); favicon(ICONS[0]); document.title = 'Home - Classroom'; nm.value = ''; cu.value = ''; mark(); };
+  t.append(grid, nm, cu, rs); mark();
+  sp.insertBefore(t, mods || null); }
 })();
