@@ -16,9 +16,169 @@ const DEFAULT_FAVICON = "https://raw.githubusercontent.com/xxuep/xxuep-icons/mai
 
 
 
+/* =====================================================================
+   THEME CURSORS: a theme can opt in with ONE line in elite.css, e.g.
+     [data-theme="city"] { --cursor-gif: url('https://.../cursor.gif'); }
+   optional: --cursor-size: 32px;   --cursor-hotspot: 0 0;  (px from the image's top-left to the click point)
+   If the active theme has no --cursor-gif line (or the image fails to load),
+   nothing happens and the normal device cursor is used.
+   A real <img> follows the mouse, because CSS cursors can't animate GIFs.
+   ===================================================================== */
+const eliteCursor = (() => {
+  const img = document.createElement('img');
+  img.id = 'eliteCursor'; img.alt = ''; img.setAttribute('aria-hidden', 'true'); img.draggable = false;
+  document.body.appendChild(img);
+  const root = document.documentElement;
+  const canHover = window.matchMedia ? window.matchMedia('(hover: hover) and (pointer: fine)') : { matches: true };
+  let enabled = false, x = -9999, y = -9999, hx = 0, hy = 0, frame = 0, inside = false;
+
+  function paint() {
+    frame = 0;
+    img.style.transform = `translate3d(${x - hx}px, ${y - hy}px, 0)`;
+  }
+  function show(on) { img.classList.toggle('visible', enabled && on); }
+  function overViewer(t) { return !!(t && t.closest && t.closest('#viewer')); }   // proxied pages keep the real cursor
+  function onMove(e) {
+    x = e.clientX; y = e.clientY;
+    inside = !overViewer(e.target);
+    show(inside);
+    if (!frame) frame = requestAnimationFrame(paint);
+  }
+  const onLeave = () => show(false);
+
+  function disable() {
+    if (!enabled && !root.classList.contains('elite-cursor-on')) return;
+    enabled = false;
+    root.classList.remove('elite-cursor-on');
+    img.classList.remove('visible');
+    img.removeAttribute('src');
+    window.removeEventListener('mousemove', onMove, true);
+    document.removeEventListener('mouseleave', onLeave);
+  }
+  function enable(url, size, hotspot) {
+    img.style.width = size; img.style.height = 'auto';
+    const h = hotspot.split(/\s+/).map(parseFloat);
+    hx = h[0] || 0; hy = h[1] || 0;
+    img.onload = () => {
+      enabled = true;
+      root.classList.add('elite-cursor-on');
+      window.addEventListener('mousemove', onMove, true);
+      document.addEventListener('mouseleave', onLeave);
+    };
+    img.onerror = disable;                       // broken link -> back to the normal cursor
+    img.src = url;
+  }
+  function apply() {
+    disable();
+    if (!canHover.matches) return;               // touch screens have no cursor to replace
+    const cs = getComputedStyle(document.body);
+    const raw = cs.getPropertyValue('--cursor-gif').trim();
+    const m = raw.match(/url\(\s*(['"]?)(.*?)\1\s*\)/);
+    if (!m || !m[2]) return;                     // theme has no cursor line -> do nothing
+    enable(m[2], cs.getPropertyValue('--cursor-size').trim() || '32px', cs.getPropertyValue('--cursor-hotspot').trim() || '0 0');
+  }
+  return { apply };
+})();
+
+/* =====================================================================
+   THEME MUSIC: a theme can opt in with ONE line in elite.css, e.g.
+     [data-theme="miku"] { --music: url('https://.../song.mp3'); }
+   optional: --music-volume: 0.5;   (0 to 1)
+   The round music button at the bottom of the sidebar turns the music on/off.
+   If the active theme has no --music line (or the file fails to load) the
+   button is grayed out and nothing can be played. The on/off choice is
+   remembered, so it resumes when you switch back to a theme with music.
+   ===================================================================== */
+const eliteMusic = (() => {
+  const KEY = 'elite_music_on';
+  // The icon is a normal <img>. To use your own picture, paste its link here (or add --music-icon: url('...') to a theme).
+  // Left empty, it uses the built-in music-note image below.
+  const MUSIC_ICON_URL = 'https://raw.githubusercontent.com/xxuep/xxuep-icons/main/musiciconn.png';
+  const DEFAULT_ICON = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>');
+  const NOTE = '<img class="music-icon" alt="" width="30" height="30" draggable="false" src="' + (MUSIC_ICON_URL || DEFAULT_ICON) + '" />';
+  const btn = document.createElement('button');
+  btn.type = 'button'; btn.id = 'musicBtn'; btn.className = 'sidebar-btn music-btn'; btn.innerHTML = NOTE + '<span class="music-slash" aria-hidden="true"></span>';
+  (document.getElementById('sidebar') || document.body).appendChild(btn);   // bottom of the sidebar
+  const audio = new Audio();
+  audio.loop = true; audio.preload = 'metadata';   // metadata: a broken link is detected right away
+  let available = false, wantOn = false, src = '', failed = false;
+  try { wantOn = localStorage.getItem(KEY) === '1'; } catch {}
+
+  function paint() {
+    const playing = available && wantOn;
+    btn.classList.toggle('is-disabled', !available);
+    btn.classList.toggle('is-on', playing);
+    btn.setAttribute('aria-disabled', String(!available));
+    btn.setAttribute('aria-pressed', String(playing));
+    btn.title = failed ? 'Music file failed to load' : !available ? 'No music for this theme' : playing ? 'Turn music off' : 'Turn music on';
+    btn.setAttribute('aria-label', btn.title);
+  }
+  // browsers block sound until the page has been clicked/typed in once; wait for that, then start
+  let waiting = false;
+  function startWhenAllowed() {
+    if (waiting) return;
+    waiting = true;
+    const go = () => {
+      waiting = false;
+      window.removeEventListener('pointerdown', go, true);
+      window.removeEventListener('keydown', go, true);
+      if (available && wantOn) audio.play().catch(() => {});
+    };
+    window.addEventListener('pointerdown', go, true);
+    window.addEventListener('keydown', go, true);
+  }
+  function sync() {
+    if (available && wantOn) {
+      const p = audio.play();
+      if (p && p.catch) p.catch(() => startWhenAllowed());
+    } else audio.pause();
+    paint();
+  }
+  function disable() {
+    available = false; src = ''; failed = false;
+    audio.pause(); audio.removeAttribute('src'); audio.load();
+    paint();
+  }
+  function fail() {                               // link is wrong / file missing: gray out, but say why
+    console.warn('[elite] theme music failed to load:', src);
+    audio.pause();
+    available = false; failed = true;
+    paint();
+  }
+  function apply() {
+    const cs = getComputedStyle(document.body);
+    const raw = cs.getPropertyValue('--music').trim();
+    const ic = cs.getPropertyValue('--music-icon').trim().match(/url\(\s*(['"]?)(.*?)\1\s*\)/);
+    const wanted = (ic && ic[2]) || MUSIC_ICON_URL || DEFAULT_ICON;
+    const iconEl = btn.querySelector('.music-icon');
+    if (iconEl && iconEl.getAttribute('src') !== wanted) iconEl.setAttribute('src', wanted);
+    const m = raw.match(/url\(\s*(['"]?)(.*?)\1\s*\)/);
+    if (!m || !m[2]) { disable(); return; }       // theme has no music line -> grayed out
+    const vol = parseFloat(cs.getPropertyValue('--music-volume'));
+    audio.volume = isNaN(vol) ? 0.6 : Math.min(1, Math.max(0, vol));
+    if (m[2] !== src) {                           // same song after a theme switch keeps playing
+      src = m[2]; failed = false;
+      audio.src = src;
+    }
+    available = !failed;
+    sync();
+  }
+  audio.addEventListener('error', () => { if (src) fail(); });        // broken link -> grayed out
+  btn.addEventListener('click', () => {
+    if (!available) return;                       // grayed out: nothing to play
+    wantOn = !wantOn;
+    try { localStorage.setItem(KEY, wantOn ? '1' : '0'); } catch {}
+    sync();
+  });
+  paint();
+  return { apply };
+})();
+
 // Apply saved theme
 const savedTheme = localStorage.getItem('elite_theme') || 'custom';
 document.body.setAttribute('data-theme', savedTheme);
+eliteCursor.apply();
+eliteMusic.apply();
 
 // Selectors
 const themeSelect = document.getElementById('themeSelect');
@@ -36,6 +196,8 @@ if (themeSelect) {
     const val = e.target.value;
     document.body.setAttribute('data-theme', val);
     localStorage.setItem('elite_theme', val);
+    eliteCursor.apply();
+eliteMusic.apply();
     
     if (val === 'custom') customColorPicker.style.display = 'block';
     else customColorPicker.style.display = 'none';
@@ -73,8 +235,8 @@ const grid1Data = [
   { title: "A Bite at Freddys", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/abiteatfreddyss.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/A_Bite_at_Freddy_s.html" },
   { title: "A Dance of Fire and Ice", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/adancee.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/A_Dance_of_Fire_and_Ice.html" },
   { title: "A Difficult Game About Climbing", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/adifficultt.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/A_Difficult_Game_About_Climbing.html" },
-  { title: "A Game About Feeding A Black Hole", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/blackholee.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/A_Game_About_Feeding_A_Black_Hole" },
-  { title: "A Small World Cup", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/asmallworldcupp.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/A_Small_World_Cup" },
+  { title: "A Game About Feeding A Black Hole", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/blackholee.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/A_Game_About_Feeding_A_Black_Hole.html" },
+  { title: "A Small World Cup", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/asmallworldcupp.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/A_Small_World_Cup.html" },
   { title: "Abandoned", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/abandonedd.png", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/Abandoned.html" },
   { title: "Ace Attorney Investigations - Miles Edgeworth", img: "https://raw.githubusercontent.com/xxuep1/offline-game-thumbnails/main/aceattorneyy.jpe", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/Ace_Attorney_Investigations_-_Miles_Edgeworth.html" },
   { title: "Age of War", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/ageofwar.jpeg", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-HTML-Games-Pack/master/offline/age-of-war.html" },
@@ -320,6 +482,7 @@ const grid1Data = [
   { title: "Riddle School 5", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/riddleschool55.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/riddle-school-5.html" },
   { title: "Riddle Transfer", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/riddletransferr.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/riddle-transfer.html" },
   { title: "Riddle Transfer 2", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/riddletransfer22.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/riddle-transfer-2.html" },
+  { title: "Roblox 2007 (slow loading)", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/roblox2007.png", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/roblox2007.html" },
   { title: "Rocket Soccer Derby", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/rocketsoccerderbyy.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/rocket-soccer-derby.html" },
   { title: "Rooftop Run", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/rooftoprunn.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/rooftop-run.html" },
   { title: "Rooftop Snipers", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/rooftopsniperss.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-Single-File-Games/master/offline/rooftop-snipers.htm" },
@@ -863,16 +1026,18 @@ function buildVideoGrid(containerId, dataArray) {
   const container = document.getElementById(containerId);
   if (!container) return;
   container.innerHTML = "";
-  dataArray.forEach(item => {
+  const lazy = createLazyGrid(container, item => {
     const el = document.createElement("div");
     el.className = "grid-item";
-    el.innerHTML = `
-      <img src="${item.thumb}" alt="${item.title}" />
-      <div class="info">${item.title}</div>
-    `;
+    const img = document.createElement("img");
+    img.src = item.thumb; img.alt = item.title; img.loading = "lazy"; img.decoding = "async";
+    const info = document.createElement("div");
+    info.className = "info"; info.textContent = item.title;
+    el.append(img, info);
     el.addEventListener("click", () => openVideoPlayer(item));
-    container.appendChild(el);
+    return el;
   });
+  lazy.setList(dataArray);
 }
 
 async function openCloakedTab(htmlUrl) {
@@ -896,59 +1061,239 @@ function buildGrid(containerId, dataArray) {
   const container = document.getElementById(containerId);
   if (!container) return;
   container.innerHTML = '';
-  dataArray.forEach(item => {
+  container._gridData = dataArray;
+  const frag = document.createDocumentFragment();
+  dataArray.forEach((item, i) => {
     const el = document.createElement('div');
     el.className = 'grid-item';
+    el.dataset.i = i;
     el.innerHTML = `
-      <img src="${item.img}" alt="${item.title}" />
+      <img src="${item.img}" alt="${item.title}" loading="lazy" decoding="async" />
+      <span class="glare" aria-hidden="true"></span>
       <div class="info">${item.title}</div>
     `;
-    el.addEventListener('click', () => openCloakedTab(item.htmlUrl));
-    container.appendChild(el);
+    frag.appendChild(el);
   });
+  container.appendChild(frag);
+  if (!container._gridClick) {
+    container._gridClick = true;
+    container.addEventListener('click', e => {
+      const card = e.target.closest('.grid-item');
+      if (!card || !container.contains(card)) return;
+      const item = container._gridData[+card.dataset.i];
+      if (item) openCloakedTab(item.htmlUrl);
+    });
+  }
 }
+
+/* =====================================================================
+   LAZY GRIDS: only a small batch of cards is in the DOM at first; more are
+   added as you scroll (IntersectionObserver). Used by games, apps and movies.
+   ===================================================================== */
+function createLazyGrid(container, makeCard, opts = {}) {
+  const first = opts.first || 12;     // cards in the very first chunk (fast first paint)
+  const batch = opts.batch || 18;     // cards per chunk while scrolling
+  const slice = opts.slice || 6;      // cards built per animation frame (keeps frames short)
+  const root = opts.root || container.closest('.page-container') || null;
+  const sentinel = document.createElement('div');
+  sentinel.className = 'grid-sentinel';
+  sentinel.setAttribute('aria-hidden', 'true');
+  container.appendChild(sentinel);
+  let list = [], shown = 0, target = 0, raf = 0;
+  const io = ('IntersectionObserver' in window)
+    ? new IntersectionObserver(entries => { if (entries.some(e => e.isIntersecting)) more(); }, { root, rootMargin: '400px 0px' })
+    : null;
+  function watch() {
+    if (!io) return;
+    io.unobserve(sentinel);                       // re-observing forces a fresh check
+    if (shown >= target && shown < list.length) io.observe(sentinel);
+  }
+  // builds one small slice of the current chunk per frame, so a chunk never blocks the page
+  function pump() {
+    raf = 0;
+    const end = Math.min(target, shown + slice);
+    const frag = document.createDocumentFragment();
+    for (; shown < end; shown++) {
+      const el = makeCard(list[shown]);
+      el.classList.add('card-in');
+      frag.appendChild(el);
+    }
+    container.insertBefore(frag, sentinel);
+    if (shown < target) raf = requestAnimationFrame(pump);
+    else requestAnimationFrame(watch);
+  }
+  function more() {
+    if (shown >= list.length || shown < target) return;   // nothing left, or a chunk is still building
+    target = io ? Math.min(list.length, shown + (shown === 0 ? first : batch)) : list.length;
+    pump();
+  }
+  return {
+    setList(next) {
+      if (raf) { cancelAnimationFrame(raf); raf = 0; }
+      container.querySelectorAll(':scope > .grid-item').forEach(el => el.remove());
+      list = next.slice(); shown = 0; target = 0;
+      more(); watch();
+    },
+    add(item) { const all = shown === list.length; list.push(item); if (all) more(); else watch(); },
+    remove(item) {
+      const i = list.indexOf(item);
+      if (i < 0) return;
+      list.splice(i, 1);
+      if (i < shown) { shown--; const el = container.children[i]; if (el && el !== sentinel) el.remove(); }
+      target = Math.min(target, list.length);
+    },
+    size() { return list.length; }
+  };
+}
+
+/* =====================================================================
+   LIBRARY PAGE (games / apps): lazy "All" grid + "Favorites" grid, star
+   buttons, search, randomize. Favorites persist in localStorage.
+   ===================================================================== */
+const ELITE_STAR_SVG = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 2.6l2.95 6.1 6.65.9-4.85 4.65 1.2 6.6L12 17.6l-5.95 3.25 1.2-6.6L2.4 9.6l6.65-.9z"/></svg>';
+function eliteLibrary(cfg) {
+  const { data, noun, store, ids } = cfg;
+  const $ = id => document.getElementById(id);
+  const allBox = $(ids.all), favBox = $(ids.fav);
+  if (!allBox || !favBox) return;
+  const input = $(ids.search), clear = $(ids.clear), count = $(ids.count), none = $(ids.none);
+  const favCount = $(ids.favCount), allCount = $(ids.allCount), favEmpty = $(ids.favEmpty), rand = $(ids.rand);
+
+  const keyOf = it => it.htmlUrl || it.title;
+  const byKey = new Map(data.map(it => [keyOf(it), it]));
+  const index = new Map(data.map(it => { const n = it.title.toLocaleLowerCase(); return [it, { n, c: n.replace(/[^a-z0-9]/g, '') }]; }));
+
+  let favs = [];
+  try { favs = JSON.parse(localStorage.getItem(store) || '[]').filter(k => byKey.has(k)); } catch { favs = []; }
+  const saveFavs = () => { try { localStorage.setItem(store, JSON.stringify(favs)); } catch {} };
+
+  let order = data.slice(), query = '';
+  const matches = it => {
+    if (!query) return true;
+    const ix = index.get(it);
+    const tokens = query.split(/\s+/).filter(Boolean);
+    const compact = query.replace(/[^a-z0-9]/g, '');
+    return tokens.every(t => ix.n.includes(t)) || (compact && ix.c.includes(compact));
+  };
+
+  function setStar(btn, on, title) {
+    btn.classList.toggle('is-fav', on);
+    btn.setAttribute('aria-pressed', String(on));
+    btn.setAttribute('aria-label', (on ? 'Remove from favorites: ' : 'Add to favorites: ') + title);
+    btn.title = on ? 'Unfavorite' : 'Favorite';
+  }
+  function makeCard(item) {
+    const el = document.createElement('div');
+    el.className = 'grid-item';
+    el.dataset.key = keyOf(item);
+    const img = document.createElement('img');
+    img.src = item.img; img.alt = item.title; img.loading = 'lazy'; img.decoding = 'async';
+    const glare = document.createElement('span');
+    glare.className = 'glare'; glare.setAttribute('aria-hidden', 'true');
+    const star = document.createElement('button');
+    star.type = 'button'; star.className = 'fav-star'; star.innerHTML = ELITE_STAR_SVG;
+    setStar(star, favs.includes(keyOf(item)), item.title);
+    const info = document.createElement('div');
+    info.className = 'info'; info.textContent = item.title;
+    el.append(img, glare, star, info);
+    return el;
+  }
+
+  const allLazy = createLazyGrid(allBox, makeCard);
+  const favLazy = createLazyGrid(favBox, makeCard);
+
+  function updateMeta(visibleAll) {
+    if (visibleAll != null) {
+      if (count) count.textContent = query ? `${visibleAll} of ${data.length} ${noun}` : `${data.length} ${noun}`;
+      if (allCount) allCount.textContent = String(visibleAll);
+      if (none) {
+        none.hidden = visibleAll !== 0;
+        none.textContent = data.length ? `No ${noun} found. Try another search.` : 'Nothing here yet.';
+      }
+    }
+    const shownFavs = favLazy.size();
+    if (favCount) favCount.textContent = String(shownFavs);
+    if (favEmpty) {
+      favEmpty.hidden = shownFavs > 0;
+      favEmpty.textContent = favs.length
+        ? 'No favorites match your search.'
+        : `No favorites yet. Tap the star on any ${noun.replace(/s$/, '')} to pin it here.`;
+    }
+    if (clear) clear.hidden = !query;
+  }
+
+  function refresh() {
+    const vis = order.filter(matches);
+    allLazy.setList(vis);
+    favLazy.setList(favs.map(k => byKey.get(k)).filter(matches));
+    updateMeta(vis.length);
+  }
+
+  function toggleFav(item) {
+    const key = keyOf(item), i = favs.indexOf(key), on = i < 0;
+    if (on) { favs.push(key); favLazy.add(item); } else { favs.splice(i, 1); favLazy.remove(item); }
+    saveFavs();
+    [allBox, favBox].forEach(box => box.querySelectorAll('.grid-item').forEach(card => {
+      if (card.dataset.key !== key) return;
+      const s = card.querySelector('.fav-star'); if (!s) return;
+      setStar(s, on, item.title);
+      if (on) { s.classList.remove('pop'); void s.offsetWidth; s.classList.add('pop'); }
+    }));
+    updateMeta(null);
+  }
+
+  function onClick(e) {
+    const card = e.target.closest('.grid-item');
+    if (!card) return;
+    const item = byKey.get(card.dataset.key);
+    if (!item) return;
+    if (e.target.closest('.fav-star')) { e.stopPropagation(); toggleFav(item); return; }
+    openCloakedTab(item.htmlUrl);
+  }
+  allBox.addEventListener('click', onClick);
+  favBox.addEventListener('click', onClick);
+
+  let t = 0;
+  input?.addEventListener('input', () => {
+    clearTimeout(t);
+    t = setTimeout(() => { query = input.value.trim().toLocaleLowerCase(); refresh(); }, 90);
+  });
+  const reset = () => { input.value = ''; query = ''; refresh(); };
+  input?.addEventListener('keydown', e => { if (e.key === 'Escape') { reset(); input.blur(); } });
+  clear?.addEventListener('click', () => { reset(); input.focus(); });
+
+  rand?.addEventListener('click', () => {
+    if (!data.length) return;
+    const pick = data[Math.floor(Math.random() * data.length)];
+    rand.classList.remove('spin'); void rand.offsetWidth; rand.classList.add('spin');
+    openCloakedTab(pick.htmlUrl);
+  });
+  refresh();
+}
+
+/* collapsible "Favorites" / "All" dropdown headers (open/closed state is remembered) */
+(function eliteSections() {
+  document.querySelectorAll('.grid-section').forEach(sec => {
+    const toggle = sec.querySelector('.section-toggle'), body = sec.querySelector('.section-body');
+    if (!toggle || !body) return;
+    const KEY = 'elite_sec_' + sec.id;
+    const set = open => { toggle.setAttribute('aria-expanded', String(open)); body.hidden = !open; };
+    let open = true; try { open = localStorage.getItem(KEY) !== '0'; } catch {}
+    set(open);
+    toggle.addEventListener('click', () => {
+      const next = toggle.getAttribute('aria-expanded') !== 'true';
+      set(next);
+      try { localStorage.setItem(KEY, next ? '1' : '0'); } catch {}
+    });
+  });
+})();
 
 // Initialize UI Elements
-buildGrid('grid1-container', grid1Data);
-
-const gamesSearchInput = document.getElementById('gamesSearch');
-const gamesSearchClear = document.getElementById('gamesSearchClear');
-const gamesCount = document.getElementById('gamesCount');
-const gamesNoResults = document.getElementById('gamesNoResults');
-const gameCards = [...document.querySelectorAll('#grid1-container .grid-item')];
-const gameSearchIndex = gameCards.map((card, index) => ({
-  card,
-  name: grid1Data[index].title.toLocaleLowerCase(),
-  compact: grid1Data[index].title.toLocaleLowerCase().replace(/[^a-z0-9]/g, '')
-}));
-function filterGames() {
-  const query = (gamesSearchInput?.value || '').trim().toLocaleLowerCase();
-  const tokens = query.split(/\s+/).filter(Boolean);
-  const compact = query.replace(/[^a-z0-9]/g, '');
-  let visible = 0;
-  for (const game of gameSearchIndex) {
-    const matches = !query || tokens.every(token => game.name.includes(token)) || (compact && game.compact.includes(compact));
-    game.card.hidden = !matches;
-    if (matches) visible++;
-  }
-  if (gamesCount) gamesCount.textContent = query ? `${visible} of ${gameCards.length} games` : `${gameCards.length} games`;
-  if (gamesNoResults) gamesNoResults.hidden = visible !== 0;
-  if (gamesSearchClear) gamesSearchClear.hidden = !query;
-}
-gamesSearchInput?.addEventListener('input', filterGames);
-gamesSearchInput?.addEventListener('keydown', event => {
-  if (event.key === 'Escape') {
-    gamesSearchInput.value = '';
-    filterGames();
-    gamesSearchInput.blur();
-  }
+eliteLibrary({
+  data: grid1Data, noun: 'games', store: 'elite_favs_games',
+  ids: { all: 'grid1-container', fav: 'grid1-fav', search: 'gamesSearch', clear: 'gamesSearchClear', count: 'gamesCount',
+         none: 'gamesNoResults', favCount: 'gamesFavCount', allCount: 'gamesAllCount', favEmpty: 'gamesFavEmpty', rand: 'gamesRandom' }
 });
-gamesSearchClear?.addEventListener('click', () => {
-  gamesSearchInput.value = '';
-  filterGames();
-  gamesSearchInput.focus();
-});
-filterGames();
 buildVideoGrid("grid2-container", movieGridData);
 renderShortcuts();
 createTab(); 
@@ -1137,36 +1482,57 @@ applyMods(); renderMods();
   if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const STIFF = 190, DAMP = 13;          // lower damping = more wobble
   const MAX_TILT = 13, HOVER_SCALE = 1.055, PRESS_SCALE = .965;
-  const states = new Map();              // card -> state
+  const states = new WeakMap();          // card -> state
+  const ON = new Set();                  // cards currently animating
+  const root = document.documentElement;
   let hovered = null, raf = 0, last = 0;
+  let pointer = { x: 0, y: 0 }, pending = false;
+  let rectVer = 0;                       // bumps on scroll/resize so cached geometry is refreshed
+  let lite = false, frames = 0, slow = 0; // adaptive quality (drops glare + image parallax if frames are slow)
+
+  const invalidate = () => { rectVer++; };
+  document.addEventListener('scroll', invalidate, { capture: true, passive: true });
+  window.addEventListener('resize', invalidate, { passive: true });
 
   function stateOf(card) {
     let s = states.get(card);
     if (!s) {
-      s = { card, hover: false, down: false,
+      s = { card, img: card.querySelector('img'), glare: card.querySelector('.glare'),
+        hover: false, down: false, ver: -1, cx: 0, cy: 0, w: 1, h: 1,
         rx: {x:0,v:0,t:0}, ry: {x:0,v:0,t:0}, sc: {x:1,v:0,t:1}, px: {x:0,v:0,t:0}, py: {x:0,v:0,t:0} };
       states.set(card, s);
     }
     return s;
   }
-  const ON = new Set();
-  function wake(s) { ON.add(s); if (!raf) { last = performance.now(); raf = requestAnimationFrame(tick); } }
+  function wake(s) {
+    if (!ON.has(s)) { ON.add(s); s.card.classList.add('is-animating'); }
+    if (!raf) { last = performance.now(); raf = requestAnimationFrame(tick); }
+  }
   function disabled() { return document.body.classList.contains('mod-no-animations'); }
 
-  function aim(s, e) {
+  // geometry is only measured when stale (not on every pointermove)
+  function measure(s) {
     const r = s.card.getBoundingClientRect();
-    const nx = Math.max(-.5, Math.min(.5, (e.clientX - r.left) / r.width - .5));
-    const ny = Math.max(-.5, Math.min(.5, (e.clientY - r.top) / r.height - .5));
+    s.cx = r.left + r.width / 2;
+    s.cy = r.top + r.height / 2 + (s.sc.x - 1) * 150;   // undo current lift so the center stays stable
+    s.w = s.card.offsetWidth || r.width || 1;
+    s.h = s.card.offsetHeight || r.height || 1;
+    s.ver = rectVer;
+  }
+  function aim(s) {
+    if (s.ver !== rectVer) measure(s);
+    const nx = Math.max(-.5, Math.min(.5, (pointer.x - s.cx) / s.w));
+    const ny = Math.max(-.5, Math.min(.5, (pointer.y - s.cy) / s.h));
     s.ry.t = nx * 2 * MAX_TILT;
     s.rx.t = -ny * 2 * MAX_TILT;
     s.px.t = nx * 2; s.py.t = ny * 2;
     s.sc.t = s.down ? PRESS_SCALE : HOVER_SCALE;
   }
-  function enter(card, e) {
+  function enter(card) {
     const s = stateOf(card); s.hover = true;
     card.classList.add('is-tilting');
     s.sc.v += 1.1;                        // little pop on entry
-    aim(s, e); wake(s);
+    s.ver = -1; aim(s); wake(s);
   }
   function leave(card) {
     const s = stateOf(card); s.hover = false; s.down = false;
@@ -1178,13 +1544,15 @@ applyMods(); renderMods();
 
   document.addEventListener('pointermove', e => {
     if (e.pointerType === 'touch' || disabled()) return;
+    pointer.x = e.clientX; pointer.y = e.clientY;
     const card = e.target.closest && e.target.closest('.grid-item');
     if (card !== hovered) {
       if (hovered) leave(hovered);
       hovered = card || null;
-      if (hovered) enter(hovered, e);
+      if (hovered) enter(hovered);
     } else if (hovered) {
-      aim(stateOf(hovered), e); wake(stateOf(hovered));
+      pending = true;                     // aimed once per frame inside tick()
+      wake(stateOf(hovered));
     }
   }, { passive: true });
   document.addEventListener('pointerleave', () => { if (hovered) { leave(hovered); hovered = null; } });
@@ -1194,7 +1562,7 @@ applyMods(); renderMods();
     const card = e.target.closest && e.target.closest('.grid-item'); if (!card) return;
     const s = stateOf(card); s.down = true; s.sc.t = PRESS_SCALE; wake(s);
   });
-  const release = () => states.forEach(s => { if (s.down) { s.down = false; s.sc.t = s.hover ? HOVER_SCALE : 1; s.sc.v += .5; wake(s); } });
+  const release = () => ON.forEach(s => { if (s.down) { s.down = false; s.sc.t = s.hover ? HOVER_SCALE : 1; s.sc.v += .5; wake(s); } });
   document.addEventListener('pointerup', release);
   document.addEventListener('pointercancel', release);
 
@@ -1203,20 +1571,45 @@ applyMods(); renderMods();
     p.v += a * dt; p.x += p.v * dt;
   }
   const settled = p => Math.abs(p.t - p.x) < .0008 && Math.abs(p.v) < .01;
+  const clamp01 = v => v < 0 ? 0 : v > 1 ? 1 : v;
+
+  function clearFx(s) {
+    s.card.style.transform = '';
+    if (s.img) s.img.style.transform = '';
+    if (s.glare) s.glare.style.opacity = '';
+    if (s.glare) s.glare.style.transform = '';
+    s.card.classList.remove('is-animating');
+  }
 
   function tick(now) {
-    const dt = Math.min(.032, (now - last) / 1000 || .016); last = now;
-    for (const s of [...ON]) {
+    const raw = (now - last) / 1000 || .016; last = now;
+    const dt = Math.min(.032, raw);
+
+    // adaptive quality: if the device can't hold ~30fps, drop the extras (tilt + lift + press stay)
+    if (!lite && ++frames > 3) {
+      if (raw > .034) slow++;
+      if (frames >= 40) {
+        if (slow > 14) { lite = true; root.classList.add('cards-lite'); ON.forEach(s => { if (s.img) s.img.style.transform = ''; }); }
+        frames = 0; slow = 0;
+      }
+    }
+
+    if (pending && hovered) { aim(stateOf(hovered)); pending = false; }
+
+    for (const s of ON) {
       step(s.rx, dt); step(s.ry, dt); step(s.sc, dt); step(s.px, dt); step(s.py, dt);
-      const st = s.card.style;
       const lift = (s.sc.x - 1) * 150;
-      st.transform = `perspective(900px) translate3d(0,${(-lift).toFixed(2)}px,0) rotateX(${s.rx.x.toFixed(2)}deg) rotateY(${s.ry.x.toFixed(2)}deg) scale(${s.sc.x.toFixed(4)})`;
-      st.setProperty('--mx', ((s.px.x / 2 + .5) * 100).toFixed(1) + '%');
-      st.setProperty('--my', ((s.py.x / 2 + .5) * 100).toFixed(1) + '%');
-      st.setProperty('--px', s.px.x.toFixed(3)); st.setProperty('--py', s.py.x.toFixed(3));
-      st.setProperty('--glare', Math.max(0, Math.min(1, (s.sc.x - 1) / (HOVER_SCALE - 1))).toFixed(3));
-      if (!s.hover && !s.down && [s.rx, s.ry, s.sc, s.px, s.py].every(settled)) {
-        st.transform = ''; st.removeProperty('--glare'); st.removeProperty('--px'); st.removeProperty('--py');
+      s.card.style.transform = `perspective(900px) translate3d(0,${(-lift).toFixed(2)}px,0) rotateX(${s.rx.x.toFixed(2)}deg) rotateY(${s.ry.x.toFixed(2)}deg) scale(${s.sc.x.toFixed(4)})`;
+      if (!lite) {
+        const g = clamp01((s.sc.x - 1) / (HOVER_SCALE - 1));
+        if (s.img) s.img.style.transform = `scale(${(1 + g * .08).toFixed(4)}) translate3d(${(s.px.x * -7).toFixed(2)}px,${(s.py.x * -5).toFixed(2)}px,0)`;
+        if (s.glare) {
+          s.glare.style.transform = `translate3d(${(s.px.x * 25).toFixed(2)}%,${(s.py.x * 25).toFixed(2)}%,0)`;
+          s.glare.style.opacity = g.toFixed(3);
+        }
+      }
+      if (!s.hover && !s.down && settled(s.rx) && settled(s.ry) && settled(s.sc) && settled(s.px) && settled(s.py)) {
+        clearFx(s);
         ON.delete(s);
       }
     }
@@ -1232,43 +1625,18 @@ applyMods(); renderMods();
 const grid3Data = [
   { title: "Gn-Math", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/gnmathh.jpg", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/gn.html" },
   { title: "Horizon", img: "https://raw.githubusercontent.com/xxuep/xxuep-icons/main/horizonbigger.png", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/horizon.html" },
+  { title: "HTML Editor", img: "https://raw.githubusercontent.com/xxuep/xxuep-icons/main/htmleditor.png", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/live-code-editor.html" },
+  { title: "Text to Speech", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/ttstool.png", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/tts.html" },
   { title: "T!tan (a, a)", img: "https://raw.githubusercontent.com/xxuep/xxuep-icons/main/titanlogo.png", htmlUrl: "https://raw.githubusercontent.com/sad-shady/sad-project/main/homework-2-27.html" },
   { title: "UGS", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/ugss.png", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/ugs.html" },
   { title: "Zetify", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/zetifyy.png", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/zetify.html" },
 ];
 (function setupAppsPage() {
-  buildGrid('grid3-container', grid3Data);
-  const input = document.getElementById('appsSearch');
-  const clear = document.getElementById('appsSearchClear');
-  const count = document.getElementById('appsCount');
-  const none = document.getElementById('appsNoResults');
-  const cards = [...document.querySelectorAll('#grid3-container .grid-item')];
-  const index = cards.map((card, i) => ({
-    card,
-    name: grid3Data[i].title.toLocaleLowerCase(),
-    compact: grid3Data[i].title.toLocaleLowerCase().replace(/[^a-z0-9]/g, '')
-  }));
-  function filter() {
-    const query = (input?.value || '').trim().toLocaleLowerCase();
-    const tokens = query.split(/\s+/).filter(Boolean);
-    const compact = query.replace(/[^a-z0-9]/g, '');
-    let visible = 0;
-    for (const app of index) {
-      const ok = !query || tokens.every(t => app.name.includes(t)) || (compact && app.compact.includes(compact));
-      app.card.hidden = !ok;
-      if (ok) visible++;
-    }
-    if (count) count.textContent = query ? `${visible} of ${cards.length} apps` : `${cards.length} apps`;
-    if (none) {
-      none.hidden = visible !== 0;
-      none.textContent = cards.length ? 'No apps found. Try another search.' : 'Nothing here yet. Add entries to grid3Data in elite.js.';
-    }
-    if (clear) clear.hidden = !query;
-  }
-  input?.addEventListener('input', filter);
-  input?.addEventListener('keydown', e => { if (e.key === 'Escape') { input.value = ''; filter(); input.blur(); } });
-  clear?.addEventListener('click', () => { input.value = ''; filter(); input.focus(); });
-  filter();
+  eliteLibrary({
+    data: grid3Data, noun: 'apps', store: 'elite_favs_apps',
+    ids: { all: 'grid3-container', fav: 'grid3-fav', search: 'appsSearch', clear: 'appsSearchClear', count: 'appsCount',
+           none: 'appsNoResults', favCount: 'appsFavCount', allCount: 'appsAllCount', favEmpty: 'appsFavEmpty', rand: 'appsRandom' }
+  });
 })();
 
 /* =====================================================================
@@ -1323,4 +1691,255 @@ const grid3Data = [
     sync();
   });
   document.addEventListener('click', e => { pickers.forEach(p => { if (!p.wrap.contains(e.target)) p.show(false); }); });
+})();
+
+/* =====================================================================
+   SETUP POPUP + DESKTOP LAYOUT
+   EASY SETUP: edit ICONS to change the tab-icon grid. Each entry is an emoji OR an image link (https://... / data:...).
+   ===================================================================== */
+(() => {
+'use strict';
+const ICONS = ['https://raw.githubusercontent.com/xxuep1/randomicons/main/googleclassroom.png','https://raw.githubusercontent.com/xxuep1/randomicons/main/clever.png','https://raw.githubusercontent.com/xxuep1/randomicons/main/ixl.png','https://raw.githubusercontent.com/xxuep1/randomicons/main/khanacademy.png','🔥','⭐','🎧','📚','🧩','🛰️','🦊','🐼','💎','🌙','🍀','🎯','🧠','🛡️','🌈','👾'];
+
+const LS = localStorage, q = s => document.querySelector(s);
+const mk = (t, c, h) => { const e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; };
+const get = (k, d) => { try { const v = JSON.parse(LS.getItem(k)); return v == null ? d : v; } catch { return d; } };
+const set = (k, v) => LS.setItem(k, JSON.stringify(v));
+const track = (e, move, end) => {
+  const sx = e.clientX, sy = e.clientY;
+  const m = ev => move(ev.clientX - sx, ev.clientY - sy, ev);
+  const u = ev => { removeEventListener('pointermove', m); removeEventListener('pointerup', u); end && end(ev); };
+  addEventListener('pointermove', m); addEventListener('pointerup', u);
+};
+
+/* ---------- tab icon + name ---------- */
+function favicon(icon) {
+  let url = icon;
+  if (!/^(https?:|data:)/.test(icon)) {
+    const c = document.createElement('canvas'); c.width = c.height = 64;
+    const x = c.getContext('2d'); x.font = '50px serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(icon, 32, 36);
+    url = c.toDataURL();
+  }
+  let l = q('link[rel~="icon"]');
+  if (!l) { l = document.createElement('link'); l.rel = 'icon'; document.head.appendChild(l); }
+  l.href = url;
+}
+function applyIdentity() { const i = get('elite_tab_icon'), n = get('elite_tab_name'); if (i) favicon(i); if (n) document.title = n; }
+
+/* ---------- layout cards (setup popup, settings page, home panel) ---------- */
+const PREV = {
+  standard: '<div class="lp lp-std"><i class="a"></i><i class="b"></i></div>',
+  desktop: '<div class="lp lp-dsk"><i class="a"></i><i class="b"></i><i class="c"></i></div>'
+};
+function layoutCards(cur, pick) {
+  const wrap = mk('div', 'es-layouts');
+  [['standard', 'Standard', 'Sidebar and pages'], ['desktop', 'Desktop', 'Windows and a taskbar']].forEach(([id, t, s]) => {
+    const c = mk('button', 'es-lay' + (id === cur ? ' sel' : ''), `<span class="es-chk">✓</span>${PREV[id]}<b>${t}</b><small>${s}</small>`);
+    c.type = 'button';
+    c.onclick = () => { wrap.querySelectorAll('.es-lay').forEach(x => x.classList.toggle('sel', x === c)); pick(id); };
+    wrap.appendChild(c);
+  });
+  return wrap;
+}
+function switchLayout(id) {          // a clean reload keeps both layouts completely untouched
+  set('elite_layout', id);
+  document.body.classList.add('es-leaving');
+  setTimeout(() => location.reload(), 380);
+}
+
+/* ---------- setup popup ---------- */
+function setup(done) {
+  let icon = get('elite_tab_icon', ICONS[0]), layout = get('elite_layout', 'standard');
+  const ov = mk('div', 'es-overlay'), card = mk('div', 'es-card');
+  card.innerHTML = '<h2>set up elite</h2><p>make it yours. you can switch layouts later.</p>' +
+    '<div class="es-label"><span>1</span>ICON</div><div class="es-icons"></div>' +
+    '<div class="es-label"><span>2</span>TAB NAME</div><input class="es-name" maxlength="40" placeholder="elite" spellcheck="false">' +
+    '<div class="es-label"><span>3</span>LAYOUT</div><div class="es-lslot"></div>' +
+    '<button class="es-go" type="button">continue →</button>';
+  const grid = card.querySelector('.es-icons');
+  ICONS.forEach(ic => {
+    const b = mk('button', 'es-ic' + (ic === icon ? ' sel' : '')); b.type = 'button';
+    if (/^(https?:|data:)/.test(ic)) { const i = new Image(); i.src = ic; b.appendChild(i); } else b.textContent = ic;
+    b.onclick = () => { icon = ic; grid.querySelectorAll('.es-ic').forEach(x => x.classList.toggle('sel', x === b)); favicon(ic); };
+    grid.appendChild(b);
+  });
+  const name = card.querySelector('.es-name'); name.value = get('elite_tab_name', '');
+  name.oninput = () => { document.title = name.value || 'elite'; };
+  card.querySelector('.es-lslot').appendChild(layoutCards(layout, id => layout = id));
+  card.querySelector('.es-go').onclick = () => {
+    set('elite_tab_icon', icon); set('elite_tab_name', name.value.trim() || 'elite'); set('elite_layout', layout); set('elite_setup_done', 1);
+    applyIdentity(); ov.classList.add('out');
+    setTimeout(() => { ov.remove(); done && done(layout); }, 450);
+  };
+  ov.appendChild(card); document.body.appendChild(ov);
+}
+
+/* ---------- desktop ---------- */
+function initDesktop() {
+  const B = document.body; B.classList.add('layout-desktop');
+  const dsk = mk('div', 'dsk', '<div class="dsk-clock"><div class="dsk-time"></div><div class="dsk-date"></div><div class="dsk-day"></div></div>');
+  B.appendChild(dsk);
+  const tE = q('.dsk-time'), dE = q('.dsk-date'), wE = q('.dsk-day');
+  const tick = () => { const n = new Date();
+    tE.textContent = n.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    dE.textContent = n.toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' });
+    wE.textContent = n.toLocaleDateString([], { weekday: 'long' }); };
+  tick(); setInterval(tick, 1000);
+
+  // every sidebar page becomes an app (the page elements are moved, not copied, so they stay untouched)
+  const APPS = [['home','Home','home-page','nav-home'],['browser','Browser','','nav-browser'],['games','Games','page2','nav-page2'],['apps','Apps','page4','nav-page4'],['settings','Settings','settings-page','nav-settings'],['credits','Credits','credits-page','nav-credits']]
+    .map(([id, name, page, nav]) => ({ id, name, page: page ? q('#' + page) : null, icon: q('#' + nav + ' img').src }));
+
+  const hidePages = () => APPS.forEach(a => { if (a.page && !wins[a.id]) a.page.style.display = 'none'; });   // the standard layout's open page must not cover the desktop
+  const wins = {};
+  hidePages();
+
+  /* browser app: the real tab bar, address bar and proxy view are moved into a window (not copied) */
+  const BR = ['tabsBar', 'chromeBar', 'newtab', 'viewer', 'iframe-loading-bg'].map(id => q('#' + id));
+  function mountBrowser(body) {
+    const bw = mk('div', 'bw'), view = mk('div', 'bw-view');
+    bw.append(BR[0], BR[1], view); view.append(BR[2], BR[3], BR[4]); body.appendChild(bw);
+    if (typeof switchView === 'function') switchView('browser'); else document.body.classList.add('elite-browser-view');
+    hidePages();
+  }
+  function unmountBrowser() {
+    BR.forEach(e => { e.style.display = 'none'; document.body.appendChild(e); });
+    document.body.classList.remove('elite-browser-view');
+    document.querySelectorAll('.bw').forEach(e => e.remove());
+  }
+
+  /* taskbar */
+  const hz = mk('div', 'tb-hz'), tb = mk('div', 'tb');
+  tb.innerHTML = '<button class="tb-b tb-home" title="Home"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/></svg></button><button class="tb-b tb-search" title="Search apps"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></button><div class="tb-sep"></div><div class="tb-apps"></div><div class="tb-tray"></div>';
+  B.append(hz, tb);
+  const mb = q('#musicBtn'); if (mb) tb.querySelector('.tb-tray').appendChild(mb);
+  let tbTimer, panel = null;
+  const showTb = () => { clearTimeout(tbTimer); tb.classList.add('show'); };
+  const hideTb = () => { clearTimeout(tbTimer); tbTimer = setTimeout(() => { if (!panel) tb.classList.remove('show'); }, 320); };
+  [hz, tb].forEach(x => { x.addEventListener('mouseenter', showTb); x.addEventListener('mouseleave', hideTb); });
+
+  function closePanel() { if (!panel) return; const p = panel; panel = null; p.classList.add('out'); setTimeout(() => p.remove(), 220); hideTb(); }
+  function openPanel(kind) {
+    if (panel && panel.dataset.k === kind) return closePanel();
+    if (panel) { panel.remove(); panel = null; }
+    const p = mk('div', 'tb-panel'); p.dataset.k = kind; panel = p; showTb();
+    if (kind === 'home') {
+      p.innerHTML = '<h3>layout</h3><p>switch how elite looks</p>';
+      p.appendChild(layoutCards('desktop', id => { if (id !== 'desktop') switchLayout(id); }));
+    } else {
+      p.innerHTML = '<input class="tb-q" placeholder="Search apps..." spellcheck="false"><div class="tb-res"></div>';
+      const inp = p.querySelector('.tb-q'), res = p.querySelector('.tb-res');
+      const draw = () => { const v = inp.value.trim().toLowerCase(); res.innerHTML = '';
+        APPS.filter(a => a.name.toLowerCase().includes(v)).forEach(a => { const r = mk('button', 'tb-r', `<img src="${a.icon}"><span>${a.name}</span>`); r.onclick = () => { closePanel(); openApp(a); }; res.appendChild(r); }); };
+      inp.oninput = draw; inp.onkeydown = e => { if (e.key === 'Enter') { const r = res.querySelector('.tb-r'); r && r.click(); } };
+      draw(); setTimeout(() => inp.focus(), 60);
+    }
+    B.appendChild(p);
+  }
+  tb.querySelector('.tb-home').onclick = e => { e.stopPropagation(); openPanel('home'); };
+  tb.querySelector('.tb-search').onclick = e => { e.stopPropagation(); openPanel('search'); };
+  addEventListener('pointerdown', e => { if (panel && !panel.contains(e.target) && !tb.contains(e.target)) closePanel(); });
+  addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
+
+  /* windows */
+  let zTop = 10, cascade = 0;
+  const focus = w => { Object.values(wins).forEach(x => x.el.classList.toggle('focus', x === w)); w.el.style.zIndex = ++zTop; renderTb(); };
+  function renderTb() {
+    const box = tb.querySelector('.tb-apps'); box.innerHTML = '';
+    Object.values(wins).forEach(w => {
+      const b = mk('button', 'tb-app' + (w.el.classList.contains('focus') && !w.min ? ' on' : ''), `<img src="${w.app.icon}"><i></i>`);
+      b.title = w.app.name; w.tbBtn = b;
+      b.onclick = () => { if (w.min) restore(w); else if (w.el.classList.contains('focus')) minimize(w); else focus(w); };
+      box.appendChild(b);
+    });
+  }
+  function warp(w, back) {                 // genie-style warp to/from the taskbar icon
+    const el = w.el, r = el.getBoundingClientRect(), t = (w.tbBtn || tb).getBoundingClientRect();
+    const tx = t.left + t.width / 2 - (r.left + r.width / 2), ty = t.top + t.height / 2 - (r.top + r.height / 2);
+    const kf = [{ transform: 'none', opacity: 1, filter: 'blur(0px)' },
+      { transform: `translate(${tx * .55}px,${ty * .55}px) scale(.5,.3) skewX(-8deg)`, opacity: .85, filter: 'blur(1px)', offset: .6 },
+      { transform: `translate(${tx}px,${ty}px) scale(.03,.02)`, opacity: 0, filter: 'blur(5px)' }];
+    return el.animate(back ? kf.slice().reverse().map((f, i) => ({ ...f, offset: i === 1 ? .4 : i / 2 })) : kf, { duration: 560, easing: back ? 'cubic-bezier(.2,.8,.3,1)' : 'cubic-bezier(.6,0,.8,.3)' });
+  }
+  function minimize(w) { if (w.min) return; w.min = true; w.el.classList.remove('focus'); warp(w).onfinish = () => { w.el.style.display = 'none'; }; renderTb(); }
+  function restore(w) { w.min = false; w.el.style.display = 'flex'; warp(w, true); focus(w); }
+  function toggleMax(w) {
+    const el = w.el; el.classList.add('anim'); setTimeout(() => el.classList.remove('anim'), 420);
+    if (!w.max) { w.rect = { l: el.offsetLeft, t: el.offsetTop, w: el.offsetWidth, h: el.offsetHeight }; w.max = true; el.classList.add('max'); Object.assign(el.style, { left: 0, top: 0, width: '100%', height: '100%' }); }
+    else { w.max = false; el.classList.remove('max', 'hdr'); Object.assign(el.style, { left: w.rect.l + 'px', top: w.rect.t + 'px', width: w.rect.w + 'px', height: w.rect.h + 'px' }); }
+  }
+  function close(w) {
+    w.el.classList.add('closing'); delete wins[w.app.id]; renderTb();
+    setTimeout(() => {
+      if (w.app.id === 'browser') unmountBrowser();
+      else { w.app.page.classList.remove('in-win'); w.app.page.style.display = 'none'; document.body.appendChild(w.app.page); }
+      w.el.remove();
+    }, 280);
+  }
+  function openApp(a) {
+    let w = wins[a.id];
+    if (w) { w.min ? restore(w) : focus(w); return; }
+    const el = mk('div', 'dw', `<div class="dw-head"><span class="dw-title">${a.name}</span><div class="dw-btns"><button class="m" title="Minimize"><svg viewBox="0 0 12 12"><path d="M2 6h8"/></svg></button><button class="x" title="Maximize"><svg viewBox="0 0 12 12"><path d="M2.5 7.5v-5h5M9.5 4.5v5h-5"/></svg></button><button class="c" title="Close"><svg viewBox="0 0 12 12"><path d="m2.5 2.5 7 7m0-7-7 7"/></svg></button></div></div><div class="dw-body"></div>`);
+    const big = a.id === 'browser', W = Math.min(big ? 1000 : 820, innerWidth - 120), H = Math.min(big ? 660 : 560, innerHeight - 100), off = (cascade++ % 6) * 34;
+    Object.assign(el.style, { width: W + 'px', height: H + 'px', left: Math.max(20, (innerWidth - W) / 2 - 80 + off) + 'px', top: Math.max(20, (innerHeight - H) / 2 - 50 + off) + 'px' });
+    ['n','s','e','w','ne','nw','se','sw'].forEach(d => { const h = mk('div', 'rz ' + d); h.dataset.d = d; el.appendChild(h); });
+    if (a.id === 'browser') mountBrowser(el.querySelector('.dw-body'));
+    else { a.page.classList.add('in-win'); el.querySelector('.dw-body').appendChild(a.page); }
+    dsk.appendChild(el);
+    w = { app: a, el, min: false, max: false }; wins[a.id] = w; focus(w);
+    el.addEventListener('pointerdown', () => { if (!el.classList.contains('focus')) focus(w); });
+    el.querySelector('.m').onclick = () => minimize(w);
+    el.querySelector('.x').onclick = () => toggleMax(w);
+    el.querySelector('.c').onclick = () => close(w);
+    const head = el.querySelector('.dw-head');
+    head.ondblclick = e => { if (!e.target.closest('button')) toggleMax(w); };
+    head.onpointerdown = e => {
+      if (e.button || e.target.closest('button') || w.max) return;
+      const ox = el.offsetLeft, oy = el.offsetTop; el.classList.add('drag');
+      track(e, (dx, dy) => { el.style.left = ox + dx + 'px'; el.style.top = Math.max(0, Math.min(innerHeight - 40, oy + dy)) + 'px'; }, () => el.classList.remove('drag'));
+    };
+    el.querySelectorAll('.rz').forEach(h => h.onpointerdown = e => {
+      if (e.button || w.max) return; e.preventDefault();
+      const d = h.dataset.d, L = el.offsetLeft, T = el.offsetTop, Wd = el.offsetWidth, Ht = el.offsetHeight, MW = 360, MH = 240; el.classList.add('drag');
+      track(e, (dx, dy) => {
+        let l = L, t = T, wd = Wd, ht = Ht;
+        if (d.includes('e')) wd = Math.max(MW, Wd + dx);
+        if (d.includes('s')) ht = Math.max(MH, Ht + dy);
+        if (d.includes('w')) { wd = Math.max(MW, Wd - dx); l = L + Wd - wd; }
+        if (d.includes('n')) { ht = Math.max(MH, Ht - dy); t = Math.max(0, T + Ht - ht); ht = T + Ht - t; }
+        Object.assign(el.style, { left: l + 'px', top: t + 'px', width: wd + 'px', height: ht + 'px' });
+      }, () => el.classList.remove('drag'));
+    });
+    el.addEventListener('pointermove', e => {   // maximized: header drops down when the mouse touches the very top
+      if (!w.max) return; const y = e.clientY;
+      el.classList.toggle('hdr', y < (el.classList.contains('hdr') ? 46 : 8));
+    });
+    el.addEventListener('pointerleave', () => el.classList.remove('hdr'));
+  }
+
+  /* shortcut icons: drag them anywhere */
+  const pos = get('elite_dsk_pos', {});
+  APPS.forEach((a, i) => {
+    const p = pos[a.id] || { x: 28, y: 28 + i * 108 };
+    const d = mk('div', 'dsk-ico', `<img src="${a.icon}" draggable="false"><span>${a.name}</span>`);
+    d.style.left = p.x + 'px'; d.style.top = p.y + 'px'; d.style.animationDelay = i * 70 + 'ms';
+    d.onpointerdown = e => {
+      if (e.button) return; const ox = d.offsetLeft, oy = d.offsetTop; let moved = false; d.classList.add('grab');
+      track(e, (dx, dy) => { if (!moved && Math.hypot(dx, dy) < 5) return; moved = true;
+        d.style.left = Math.max(0, Math.min(innerWidth - 84, ox + dx)) + 'px'; d.style.top = Math.max(0, Math.min(innerHeight - 100, oy + dy)) + 'px'; },
+        () => { d.classList.remove('grab'); if (moved) { pos[a.id] = { x: d.offsetLeft, y: d.offsetTop }; set('elite_dsk_pos', pos); } else openApp(a); });
+    };
+    dsk.appendChild(d);
+  });
+}
+
+/* ---------- start ---------- */
+applyIdentity();
+const start = layout => { if (layout === 'desktop') initDesktop(); };
+if (!get('elite_setup_done')) setup(start); else start(get('elite_layout', 'standard'));
+// settings page gets the layout switcher too (so you can change it from either layout)
+const sp = q('#settings-page');
+if (sp) { const g = mk('div', 'settings-group', '<label>Layout</label>'); g.style.marginTop = '20px';
+  g.appendChild(layoutCards(get('elite_layout', 'standard'), id => { if (id !== get('elite_layout', 'standard')) switchLayout(id); }));
+  const mods = sp.querySelector('.mods-group'); sp.insertBefore(g, mods || null); }
 })();
