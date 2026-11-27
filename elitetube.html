@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#09090d">
+<title>eliteTube</title>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#09090d;
+  --text:#f6f5fa;
+  --muted:#9998a8;
+  --accent:#46e3ff;
+  --line:rgba(255,255,255,.1);
+  --mx:50vw;
+  --my:45vh;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;overflow-x:hidden;
+  background:
+    radial-gradient(420px circle at var(--mx) var(--my),rgba(70,227,255,.1),transparent 72%),
+    linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px),
+    var(--bg);
+  background-size:auto,32px 32px,32px 32px,auto;
+  background-attachment:fixed;
+  color:var(--text);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+button,input{font:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Header: fills the screen on the landing state, shrinks to a bar after the first search */
+header{
+  height:92px;display:flex;align-items:center;justify-content:center;
+  padding:0 24px;position:sticky;top:0;z-index:10;
+  background:rgba(9,9,13,.82);backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--line);
+  transition:height .45s cubic-bezier(.2,.8,.2,1),background .3s,border-color .3s;
+}
+body.landing header{height:100vh;height:100dvh;background:transparent;border-color:transparent;backdrop-filter:none}
+.header-center{display:flex;align-items:center;gap:18px;width:min(760px,100%)}
+.logo{width:48px;height:48px;object-fit:contain;flex:0 0 48px;display:block;cursor:pointer;transition:transform .2s}
+.logo:hover{transform:scale(1.06)}
+.logo-text{font-weight:800;font-size:19px;letter-spacing:-.02em;cursor:pointer;flex:0 0 auto}
+.logo-text b{color:var(--accent)}
+.search{
+  display:flex;flex:1;height:48px;min-width:0;overflow:hidden;
+  border:1px solid rgba(255,255,255,.13);border-radius:14px;
+  background:rgba(255,255,255,.055);
+  transition:border-color .2s,background .2s,box-shadow .2s;
+}
+.search:focus-within{border-color:rgba(70,227,255,.65);background:rgba(255,255,255,.075);box-shadow:0 0 0 3px rgba(70,227,255,.12)}
+.search input{flex:1;min-width:0;background:transparent;border:0;padding:0 17px;color:white;font-size:15px;outline:none}
+.search input::placeholder{color:#858492}
+.search input::-webkit-search-cancel-button{filter:invert(.7)}
+.search button{width:56px;border:0;background:var(--accent);color:#06222a;cursor:pointer;font-size:20px;transition:filter .2s}
+.search button:hover{filter:brightness(1.15)}
+
+/* Landing shows nothing but the header */
+body.landing main{display:none}
+
+main{max-width:1450px;margin:auto;padding:28px 5% 80px}
+.status{color:var(--muted);font-size:13px;margin:0 0 22px;min-height:18px}
+.status.error{color:#8cffff}
+.results{display:grid;grid-template-columns:repeat(auto-fill,minmax(245px,1fr));gap:28px 20px}
+.video-card{min-width:0;cursor:pointer;animation:fadeIn .35s both;transition:transform .2s}
+.video-card:hover{transform:translateY(-4px)}
+.thumb-wrap{position:relative;overflow:hidden;border-radius:12px;background:#1d1d27;aspect-ratio:16/9}
+.thumb{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s}
+.video-card:hover .thumb{transform:scale(1.035)}
+.badge{position:absolute;right:7px;bottom:7px;background:rgba(0,0,0,.8);padding:2px 6px;border-radius:5px;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
+.video-info{display:flex;gap:11px;padding:11px 2px 0}
+.channel-dot{width:34px;height:34px;flex:0 0 34px;border-radius:50%;background:#292934;border:1px solid var(--line);display:grid;place-items:center;font-weight:700;color:#e8e7ef;font-size:13px}
+.video-title{font-size:14px;font-weight:650;line-height:1.45;margin:0 0 5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.video-meta{font-size:12px;color:var(--muted);line-height:1.5}
+.skeleton .thumb-wrap,.skeleton .line{background:linear-gradient(90deg,#1b1b24,#262632,#1b1b24);background-size:200% 100%;animation:shimmer 1.2s infinite linear}
+.skeleton .line{height:12px;border-radius:6px;margin-top:12px}
+.skeleton .line.short{width:55%}
+.load-more{display:block;margin:34px auto 0;padding:11px 26px;border-radius:11px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:#e5e4ec;cursor:pointer}
+.load-more:hover{background:rgba(255,255,255,.1)}
+
+#watch{display:none;animation:fadeIn .3s both}
+body.watching #watch{display:block}
+body.watching #home{display:none}
+.watch-layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:25px;align-items:start}
+.player-shell{background:#050507;border:1px solid var(--line);border-radius:15px;overflow:hidden}
+.video-frame{width:100%;aspect-ratio:16/9;position:relative;background:#000}
+#player{position:absolute;inset:0;width:100%;height:100%}
+#player iframe{width:100%;height:100%;border:0}
+.custom-controls{min-height:54px;background:#15151c;display:flex;align-items:center;gap:10px;padding:0 13px;border-top:1px solid rgba(255,255,255,.06)}
+.control{width:32px;height:32px;flex:0 0 32px;border:0;border-radius:8px;background:transparent;color:#f4f2f8;font-size:16px;cursor:pointer;display:grid;place-items:center}
+.control:hover{background:rgba(255,255,255,.09);color:var(--accent)}
+.speed{width:auto;padding:0 8px;font-size:12px;font-weight:700;flex-basis:auto}
+#progress,#volume{accent-color:var(--accent);cursor:pointer}
+#progress{flex:1;min-width:35px;height:4px}
+#volume{width:75px;height:4px}
+.time{font-size:11px;color:#b5b3c1;white-space:nowrap;font-variant-numeric:tabular-nums}
+.watch-title{font-size:21px;line-height:1.4;margin:17px 0 8px}
+.watch-channel{color:var(--muted);font-size:13px}
+.side-panel{background:rgba(20,20,28,.65);border:1px solid var(--line);border-radius:14px;padding:15px}
+.side-title{font-size:13px;color:#c7c5d1;margin:0 0 13px;font-weight:600}
+.related{display:flex;gap:10px;margin-bottom:10px;cursor:pointer;padding:5px;border-radius:9px}
+.related:hover{background:rgba(255,255,255,.07)}
+.related .thumb-wrap{width:125px;flex:0 0 125px;border-radius:7px}
+.related p{font-size:12px;line-height:1.4;margin:1px 0 0;font-weight:600;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.related small{display:block;color:var(--muted);font-size:11px;font-weight:400;margin-top:5px}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shimmer{to{background-position:-200% 0}}
+@media(max-width:900px){.watch-layout{grid-template-columns:1fr}.related-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:3px}}
+@media(max-width:600px){
+  header{height:76px;padding:0 14px}.header-center{gap:12px}.logo{width:39px;height:39px;flex-basis:39px}.search{height:43px}.search input{padding:0 12px;font-size:14px}.search button{width:45px}
+  main{padding:22px 14px 55px}.results{grid-template-columns:repeat(2,minmax(0,1fr));gap:21px 11px}
+  .video-info{gap:8px;padding-top:9px}.video-title{font-size:12px}.video-meta{font-size:10px}.channel-dot{width:29px;height:29px;flex-basis:29px;font-size:11px}
+  .custom-controls{gap:5px;padding:0 7px}.time{font-size:9px}#volume{display:none}.control{width:29px;flex-basis:29px}.watch-title{font-size:18px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body class="landing">
+<header>
+  <div class="header-center">
+    <img class="logo" id="siteLogo" alt="eliteTube" hidden>
+    <span class="logo-text" id="logoText">elite<b>Tube</b></span>
+    <form class="search" id="searchForm">
+      <input id="searchInput" type="search" placeholder="Search YouTube" autocomplete="off" aria-label="Search YouTube" autofocus>
+      <button type="submit" aria-label="Search">⌕</button>
+    </form>
+  </div>
+</header>
+
+<main>
+  <section id="home">
+    <p class="status" id="status" role="status"></p>
+    <div class="results" id="results"></div>
+    <button class="load-more" id="loadMore" hidden>Load more</button>
+  </section>
+
+  <section id="watch">
+    <div class="watch-layout">
+      <div>
+        <div class="player-shell" id="playerShell">
+          <div class="video-frame"><div id="player"></div></div>
+          <div class="custom-controls">
+            <button class="control" id="playPause" title="Play / pause (k)" aria-label="Play or pause">▶</button>
+            <span class="time" id="currentTime">0:00</span>
+            <input id="progress" type="range" min="0" max="1000" value="0" aria-label="Seek">
+            <span class="time" id="duration">0:00</span>
+            <button class="control speed" id="speed" title="Playback speed" aria-label="Playback speed">1x</button>
+            <button class="control" id="mute" title="Mute (m)" aria-label="Mute">◖))</button>
+            <input id="volume" type="range" min="0" max="100" value="80" aria-label="Volume">
+            <button class="control" id="fullscreen" title="Fullscreen (f)" aria-label="Fullscreen">⛶</button>
+          </div>
+        </div>
+        <h1 class="watch-title" id="watchTitle"></h1>
+        <div class="watch-channel" id="watchChannel"></div>
+      </div>
+      <aside class="side-panel">
+        <h2 class="side-title">Up next</h2>
+        <div class="related-list" id="related"></div>
+      </aside>
+    </div>
+  </section>
+</main>
+
+<script>
+const YOUTUBE_API_KEY = "AIzaSyD0Ipe_MxdypSY65PESRojwolL582XXlFM";
+const LOGO_URL = "https://raw.githubusercontent.com/xxuep1/elite/main/elitelogonew.png";
+const API_URL = "https://www.googleapis.com/youtube/v3";
+
+const $ = id => document.getElementById(id);
+const body = document.body;
+const SPEEDS = [1, 1.25, 1.5, 2, 0.5, 0.75];
+
+let player = null, playerReady = false, pendingId = null;
+let currentVideo = null, lastResults = [], details = {};
+let lastQuery = "", nextPageToken = "", searching = false;
+let progressTimer = null, draggingProgress = false, speedIndex = 0;
+
+/* ---------- logo (falls back to text if no image) ---------- */
+(function initLogo(){
+  const img = $("siteLogo");
+  if(!LOGO_URL || LOGO_URL.startsWith("PASTE_")) return;
+  img.onload = () => { img.hidden = false; $("logoText").hidden = true; };
+  img.src = LOGO_URL;
+})();
+$("siteLogo").addEventListener("click", goLanding);
+$("logoText").addEventListener("click", goLanding);
+
+/* ---------- cursor glow ---------- */
+document.addEventListener("pointermove", e => {
+  document.documentElement.style.setProperty("--mx", e.clientX + "px");
+  document.documentElement.style.setProperty("--my", e.clientY + "px");
+}, {passive:true});
+
+/* ---------- helpers ---------- */
+const vid = v => v.id.videoId || v.id;
+const thumbOf = (v, size="high") => {
+  const t = v.snippet.thumbnails;
+  return (t[size] || t.medium || t.default).url;
+};
+function formatTime(sec){
+  if(!Number.isFinite(sec)) return "0:00";
+  const s = Math.floor(sec), h = Math.floor(s/3600), m = Math.floor(s%3600/60), r = s%60;
+  return h ? `${h}:${String(m).padStart(2,"0")}:${String(r).padStart(2,"0")}` : `${m}:${String(r).padStart(2,"0")}`;
+}
+function parseDuration(iso){
+  const m = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/.exec(iso || "");
+  if(!m) return "";
+  const sec = (+m[1]||0)*3600 + (+m[2]||0)*60 + (+m[3]||0);
+  return sec ? formatTime(sec) : "LIVE";
+}
+function formatViews(n){
+  n = Number(n);
+  if(!Number.isFinite(n)) return "";
+  if(n >= 1e9) return (n/1e9).toFixed(1).replace(/\.0$/,"") + "B views";
+  if(n >= 1e6) return (n/1e6).toFixed(1).replace(/\.0$/,"") + "M views";
+  if(n >= 1e3) return (n/1e3).toFixed(1).replace(/\.0$/,"") + "K views";
+  return n + " views";
+}
+function metaText(v){
+  const d = details[vid(v)];
+  return [v.snippet.channelTitle, d && formatViews(d.views)].filter(Boolean).join(" • ");
+}
+function setStatus(text, isError){
+  const el = $("status");
+  el.textContent = text;
+  el.classList.toggle("error", !!isError);
+}
+
+/* ---------- screens ---------- */
+function setScreen(name){
+  body.classList.toggle("landing", name === "landing");
+  body.classList.toggle("watching", name === "watch");
+  if(name !== "watch" && player && playerReady) player.pauseVideo();
+  if(name === "watch") window.scrollTo({top:0, behavior:"smooth"});
+}
+function goLanding(){
+  $("searchInput").value = "";
+  $("results").innerHTML = "";
+  setStatus("");
+  lastResults = []; lastQuery = ""; nextPageToken = "";
+  $("loadMore").hidden = true;
+  setScreen("landing");
+  history.pushState({screen:"landing"}, "");
+  $("searchInput").focus();
+}
+window.addEventListener("popstate", e => {
+  const s = e.state && e.state.screen;
+  if(s === "watch" && currentVideo) setScreen("watch");
+  else if(s === "results" || (s === "watch" && !currentVideo)) setScreen("results");
+  else setScreen(lastResults.length ? "results" : "landing");
+});
+
+/* ---------- cards ---------- */
+function thumbWrap(v, size){
+  const wrap = document.createElement("div");
+  wrap.className = "thumb-wrap";
+  const img = document.createElement("img");
+  img.className = "thumb"; img.loading = "lazy"; img.alt = ""; img.src = thumbOf(v, size);
+  wrap.append(img);
+  const d = details[vid(v)];
+  if(d && d.duration){
+    const b = document.createElement("span");
+    b.className = "badge"; b.textContent = d.duration;
+    wrap.append(b);
+  }
+  return wrap;
+}
+function videoCard(v, i){
+  const card = document.createElement("article");
+  card.className = "video-card";
+  card.tabIndex = 0;
+  card.style.animationDelay = Math.min(i % 24 * 25, 250) + "ms";
+  const info = document.createElement("div");
+  info.className = "video-info";
+  const dot = document.createElement("div");
+  dot.className = "channel-dot";
+  dot.textContent = v.snippet.channelTitle.slice(0,1).toUpperCase();
+  const text = document.createElement("div");
+  const title = document.createElement("p");
+  title.className = "video-title"; title.textContent = v.snippet.title;
+  const meta = document.createElement("div");
+  meta.className = "video-meta"; meta.textContent = metaText(v);
+  text.append(title, meta);
+  info.append(dot, text);
+  card.append(thumbWrap(v, "high"), info);
+  const open = () => openVideo(v);
+  card.addEventListener("click", open);
+  card.addEventListener("keydown", e => { if(e.key === "Enter") open(); });
+  return card;
+}
+function showSkeletons(){
+  const frag = document.createDocumentFragment();
+  for(let i = 0; i < 8; i++){
+    const s = document.createElement("div");
+    s.className = "video-card skeleton";
+    s.innerHTML = '<div class="thumb-wrap"></div><div class="line"></div><div class="line short"></div>';
+    frag.append(s);
+  }
+  $("results").append(frag);
+}
+
+/* ---------- search ---------- */
+async function api(path, params){
+  const res = await fetch(`${API_URL}/${path}?${new URLSearchParams({...params, key:YOUTUBE_API_KEY})}`);
+  const data = await res.json();
+  if(!res.ok) throw new Error(data.error?.message || "YouTube request failed.");
+  return data;
+}
+async function fetchDetails(items){
+  const ids = items.map(vid).join(",");
+  if(!ids) return;
+  try{
+    const data = await api("videos", {part:"contentDetails,statistics", id:ids});
+    data.items.forEach(d => {
+      details[d.id] = {duration: parseDuration(d.contentDetails.duration), views: d.statistics?.viewCount};
+    });
+  }catch(_){ /* durations and views are optional */ }
+}
+async function searchVideos(query, more=false){
+  query = query.trim();
+  if(!query || searching) return;
+  if(!YOUTUBE_API_KEY || YOUTUBE_API_KEY.startsWith("PASTE_")){
+    setScreen("results");
+    $("results").innerHTML = "";
+    setStatus("Add your YouTube API key to YOUTUBE_API_KEY in this file to enable search.", true);
+    return;
+  }
+  searching = true;
+  if(!more){
+    lastQuery = query; nextPageToken = ""; lastResults = [];
+    $("results").innerHTML = "";
+    setScreen("results");
+    history.pushState({screen:"results"}, "");
+  }
+  $("loadMore").hidden = true;
+  setStatus(more ? "Loading more..." : "Searching...");
+  showSkeletons();
+  try{
+    const params = {part:"snippet", type:"video", maxResults:"24", q:lastQuery};
+    if(more && nextPageToken) params.pageToken = nextPageToken;
+    const data = await api("search", params);
+    const items = (data.items || []).filter(v => v.id && v.id.videoId);
+    await fetchDetails(items);
+    document.querySelectorAll(".skeleton").forEach(s => s.remove());
+    const start = lastResults.length;
+    lastResults = lastResults.concat(items);
+    nextPageToken = data.nextPageToken || "";
+    if(!lastResults.length){
+      setStatus(`No videos found for "${lastQuery}". Try different words.`);
+    }else{
+      setStatus("");
+      items.forEach((v, i) => $("results").append(videoCard(v, start + i)));
+    }
+    $("loadMore").hidden = !nextPageToken;
+  }catch(err){
+    document.querySelectorAll(".skeleton").forEach(s => s.remove());
+    setStatus(err.message, true);
+  }finally{
+    searching = false;
+  }
+}
+$("searchForm").addEventListener("submit", e => {
+  e.preventDefault();
+  searchVideos($("searchInput").value);
+  $("searchInput").blur();
+});
+$("loadMore").addEventListener("click", () => searchVideos(lastQuery, true));
+
+/* ---------- player ---------- */
+function loadYouTubeAPI(){
+  if(window.YT && window.YT.Player) return createPlayer();
+  if(document.querySelector("script[data-youtube-api]")) return;
+  const tag = document.createElement("script");
+  tag.src = "https://www.youtube.com/iframe_api";
+  tag.dataset.youtubeApi = "true";
+  document.head.appendChild(tag);
+}
+window.onYouTubeIframeAPIReady = createPlayer;
+
+function createPlayer(){
+  if(player) return;
+  player = new YT.Player("player", {
+    width:"100%", height:"100%",
+    videoId: pendingId || "",
+    playerVars:{autoplay:1, controls:0, rel:0, modestbranding:1, playsinline:1, iv_load_policy:3, disablekb:1, fs:0},
+    events:{
+      onReady:() => {
+        playerReady = true;
+        player.setVolume(Number($("volume").value));
+        startProgressTimer();
+      },
+      onStateChange:e => {
+        $("playPause").textContent = e.data === YT.PlayerState.PLAYING ? "Ⅱ" : "▶";
+        if(e.data === YT.PlayerState.ENDED) playNext();
+      }
+    }
+  });
+}
+function playNext(){
+  if(!currentVideo) return;
+  const list = lastResults.filter(v => vid(v) !== vid(currentVideo));
+  if(list.length) openVideo(list[0], true);
+}
+function openVideo(v, replace){
+  currentVideo = v;
+  const id = vid(v);
+  pendingId = id;
+  $("watchTitle").textContent = v.snippet.title;
+  $("watchChannel").textContent = metaText(v);
+  document.title = v.snippet.title + " - eliteTube";
+  setScreen("watch");
+  if(replace) history.replaceState({screen:"watch"}, "");
+  else history.pushState({screen:"watch"}, "");
+  if(!player) loadYouTubeAPI();
+  else if(playerReady) player.loadVideoById(id);
+  $("progress").value = 0;
+  $("currentTime").textContent = "0:00";
+  $("duration").textContent = "0:00";
+  loadRelated();
+}
+function loadRelated(){
+  const box = $("related");
+  box.innerHTML = "";
+  const id = vid(currentVideo);
+  lastResults.filter(v => vid(v) !== id).slice(0, 12).forEach(v => {
+    const item = document.createElement("div");
+    item.className = "related";
+    item.tabIndex = 0;
+    const info = document.createElement("div");
+    const title = document.createElement("p");
+    title.textContent = v.snippet.title;
+    const small = document.createElement("small");
+    small.textContent = metaText(v);
+    info.append(title, small);
+    item.append(thumbWrap(v, "medium"), info);
+    item.addEventListener("click", () => openVideo(v));
+    item.addEventListener("keydown", e => { if(e.key === "Enter") openVideo(v); });
+    box.append(item);
+  });
+}
+function togglePlay(){
+  if(!playerReady) return;
+  player.getPlayerState() === YT.PlayerState.PLAYING ? player.pauseVideo() : player.playVideo();
+}
+function toggleMute(){
+  if(!playerReady) return;
+  if(player.isMuted()){ player.unMute(); $("mute").textContent = "◖))"; }
+  else{ player.mute(); $("mute").textContent = "◖×"; }
+}
+function toggleFullscreen(){
+  const shell = $("playerShell");
+  if(document.fullscreenElement) document.exitFullscreen();
+  else if(shell.requestFullscreen) shell.requestFullscreen();
+}
+function seekBy(sec){
+  if(!playerReady) return;
+  player.seekTo(Math.max(0, player.getCurrentTime() + sec), true);
+}
+
+$("playPause").addEventListener("click", togglePlay);
+$("mute").addEventListener("click", toggleMute);
+$("fullscreen").addEventListener("click", toggleFullscreen);
+$("speed").addEventListener("click", () => {
+  if(!playerReady) return;
+  speedIndex = (speedIndex + 1) % SPEEDS.length;
+  player.setPlaybackRate(SPEEDS[speedIndex]);
+  $("speed").textContent = SPEEDS[speedIndex] + "x";
+});
+$("progress").addEventListener("input", () => {
+  draggingProgress = true;
+  if(playerReady) $("currentTime").textContent = formatTime(Number($("progress").value) / 1000 * player.getDuration());
+});
+$("progress").addEventListener("change", () => {
+  if(playerReady && player.getDuration()) player.seekTo(Number($("progress").value) / 1000 * player.getDuration(), true);
+  draggingProgress = false;
+});
+$("volume").addEventListener("input", () => {
+  if(!playerReady) return;
+  const v = Number($("volume").value);
+  player.setVolume(v);
+  if(v > 0) player.unMute();
+  $("mute").textContent = v === 0 ? "◖×" : "◖))";
+});
+
+function startProgressTimer(){
+  clearInterval(progressTimer);
+  progressTimer = setInterval(() => {
+    if(!playerReady || !body.classList.contains("watching")) return;
+    const dur = player.getDuration() || 0, cur = player.getCurrentTime() || 0;
+    if(!draggingProgress){
+      $("currentTime").textContent = formatTime(cur);
+      if(dur) $("progress").value = cur / dur * 1000;
+    }
+    $("duration").textContent = formatTime(dur);
+  }, 250);
+}
+
+/* ---------- keyboard shortcuts (watch page only) ---------- */
+document.addEventListener("keydown", e => {
+  if(!body.classList.contains("watching")) return;
+  if(e.target.matches("input[type=search],input[type=text]") || e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if(k === " " || k === "k"){ e.preventDefault(); togglePlay(); }
+  else if(k === "f"){ toggleFullscreen(); }
+  else if(k === "m"){ toggleMute(); }
+  else if(k === "arrowleft" || k === "j"){ e.preventDefault(); seekBy(-5); }
+  else if(k === "arrowright" || k === "l"){ e.preventDefault(); seekBy(5); }
+  else if(k === "/"){ e.preventDefault(); $("searchInput").focus(); }
+});
+
+history.replaceState({screen:"landing"}, "");
+</script>
+</body>
+</html>
