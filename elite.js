@@ -282,6 +282,7 @@ const grid1Data = [
   { title: "Boxing Random", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/boxingrandomm.jpeg", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-HTML-Games-Pack/master/offline/boxing-random.htm" },
   { title: "Breaking the Bank", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/breakingthebankk.jpg", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-HTML-Games-Pack/master/offline/breaking-the-bank.html" },
   { title: "Bubble Shooter", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/bubbleshooterr.jpg", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-HTML-Games-Pack/master/offline/bubble-shooter.html" },
+  { title: "Buckshot Roulette", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/buckshott.jpg", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/buckshot.html" },
   { title: "Candy Crush", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/candycrushh.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-HTML-Games-Pack/master/offline/candy-crush.html" },
   { title: "Capybara Clicker", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/capybaraclickerr.jpe", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-HTML-Games-Pack/master/offline/capybara-clicker.html" },
   { title: "Car Drawing", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/cardrawingg.png", htmlUrl: "https://raw.githubusercontent.com/CoolDude2349/Offline-HTML-Games-Pack/master/offline/car-drawing.html" },
@@ -608,6 +609,14 @@ const tabsBar = document.getElementById('tabsBar');
 const tabsNewBtn = document.getElementById('tabsNewBtn');
 const chromeBar = document.getElementById('chromeBar');
 const address = document.getElementById('address');
+const addressForm = document.getElementById('addressForm');
+const addressClear = document.getElementById('addressClear');
+const reloadBtn = document.getElementById('reloadBtn');
+const homeBtn = document.getElementById('homeBtn');
+const browserLoadingText = document.getElementById('browserLoadingText');
+let browserLoadingTimer = 0;
+let browserLoadingStarted = 0;
+let closedTabs = [];
 const searchInput = document.getElementById('search');
 const newtab = document.getElementById('newtab');
 const iframe = document.getElementById('viewer');
@@ -741,11 +750,15 @@ function getSearchEngineName() {
   return names[engine] || 'DuckDuckGo';
 }
 
-function normalizeUrl(url) {
-  let searchUrl = getSearchEnginePrefix();
-  if (!url.includes(".") || url.includes(" ")) return searchUrl + encodeURIComponent(url);
-  if (!url.startsWith("http://") && !url.startsWith("https://")) return "https://" + url;
-  return url;
+function normalizeUrl(input) {
+  const value = String(input || '').trim();
+  if (!value) return '';
+  if (/\s/.test(value)) return getSearchEnginePrefix() + encodeURIComponent(value);
+  if (/^(https?:\/\/)/i.test(value)) return value;
+  if (/^(localhost|127(?:\.\d{1,3}){3})(:\d+)?(\/|$)/i.test(value)) return 'http://' + value;
+  if (/^[a-z0-9-]+\.[a-z]{2,}(?::\d+)?(?:[/?#].*)?$/i.test(value)) return 'https://' + value;
+  if (/^\[[0-9a-f:]+\](?::\d+)?(?:[/?#].*)?$/i.test(value)) return 'https://' + value;
+  return getSearchEnginePrefix() + encodeURIComponent(value);
 }
 
 function getDomainFromInput(input) {
@@ -772,59 +785,111 @@ function createTabElement(tab) {
   const el = document.createElement('div');
   el.className = 'tab';
   el.dataset.tabId = tab.id;
+  el.setAttribute('role', 'tab');
+  el.setAttribute('aria-selected', String(tab.id === currentTabId));
+  el.title = tab.title || 'New tab';
 
   const fav = document.createElement('img');
   fav.className = 'favicon';
   fav.src = tab.favicon || DEFAULT_FAVICON;
+  fav.alt = '';
+  fav.loading = 'lazy';
+  fav.onerror = () => { fav.src = DEFAULT_FAVICON; };
 
   const t = document.createElement('div');
   t.className = 'title';
   t.textContent = tab.title || 'new tab';
 
-  const close = document.createElement('div');
+  const close = document.createElement('button');
+  close.type = 'button';
   close.className = 'close';
-  close.innerHTML = '✕'; 
+  close.textContent = '×';
+  close.setAttribute('aria-label', 'Close ' + (tab.title || 'tab'));
+  close.title = 'Close tab';
 
-  el.appendChild(fav); el.appendChild(t); el.appendChild(close);
-
-  el.addEventListener('click', (e) => {
-    if (e.target === close) return;
-    switchToTab(tab.id);
+  el.append(fav, t, close);
+  el.addEventListener('click', e => {
+    if (e.target !== close) switchToTab(tab.id);
   });
-  close.addEventListener('click', (e) => { e.stopPropagation(); closeTab(tab.id); });
+  close.addEventListener('click', e => {
+    e.stopPropagation();
+    closeTab(tab.id);
+  });
   return el;
 }
 
 function renderTabs() {
   if (!tabsBar) return;
-  Array.from(tabsBar.querySelectorAll('.tab')).forEach(n => n.remove());
+  const fragment = document.createDocumentFragment();
   for (const tab of tabs) {
     const tabEl = createTabElement(tab);
     if (tab.id === currentTabId) tabEl.classList.add('active');
-    tabsBar.insertBefore(tabEl, tabsNewBtn);
+    fragment.appendChild(tabEl);
   }
+  tabsBar.querySelectorAll('.tab').forEach(node => node.remove());
+  tabsBar.insertBefore(fragment, tabsNewBtn);
   updateTopOffsets();
+  updateBrowserControls();
+}
+
+function updateBrowserControls() {
+  const tab = tabs.find(item => item.id === currentTabId);
+  if (backBtn) backBtn.classList.toggle('is-disabled', !tab || tab.index <= 0);
+  
+  if (forwardBtn) forwardBtn.classList.toggle('is-disabled', !tab || tab.index >= tab.history.length - 1);
+  if (reloadBtn) reloadBtn.title = tab && tab.iframeUrl ? 'Reload page (Ctrl+R)' : 'Reload';
+}
+
+function setBrowserLoading(active, message = 'Preparing secure connection…') {
+  if (!iframeLoadingBg) return;
+  window.clearTimeout(browserLoadingTimer);
+  if (browserLoadingText) browserLoadingText.textContent = message;
+  if (active) {
+    browserLoadingStarted = performance.now();
+    iframeLoadingBg.classList.add('visible');
+    iframeLoadingBg.setAttribute('aria-hidden', 'false');
+    browserLoadingTimer = window.setTimeout(() => setBrowserLoading(false), 25000);
+  } else {
+    const elapsed = performance.now() - browserLoadingStarted;
+    const wait = Math.max(0, 260 - elapsed);
+    browserLoadingTimer = window.setTimeout(() => {
+      iframeLoadingBg.classList.remove('visible');
+      iframeLoadingBg.setAttribute('aria-hidden', 'true');
+    }, wait);
+  }
+}
+
+function syncAddress(tab, addressValue = null) {
+  if (!tab) return;
+  const raw = addressValue || (tab.displayHistory && tab.index >= 0 ? tab.displayHistory[tab.index] : (tab.input || ''));
+  if (address && document.activeElement !== address) address.value = raw;
+  const isSecure = /^https:/i.test(raw) || /^https?:/i.test(raw);
+  const lock = document.getElementById('addressLock');
+  if (lock) {
+    lock.textContent = isSecure ? '◆' : '⌑';
+    lock.classList.toggle('secure', isSecure);
+  }
 }
 
 function createTab(initialInput = '') {
   const id = nextTabId++;
-  const title = initialInput ? initialInput : 'new tab';
-  const favicon = faviconForInput(initialInput || '');
   const tab = {
     id,
-    title,
+    title: initialInput || 'new tab',
     input: initialInput,
     iframeUrl: '',
     history: [],
+    displayHistory: [],
     index: -1,
-    favicon,
-    newtabValue: '' 
+    favicon: faviconForInput(initialInput || ''),
+    newtabValue: '',
+    navigationId: 0
   };
   tabs.push(tab);
   currentTabId = id;
   renderTabs();
   switchToTab(id);
-  setTimeout(() => {
+  window.setTimeout(() => {
     if (!tab.iframeUrl && searchInput) {
       searchInput.focus();
       searchInput.select();
@@ -833,103 +898,200 @@ function createTab(initialInput = '') {
   return tab;
 }
 
-// -------------------------------------------------------------
-// THIS IS THE FIXED AND COMPLETED `navigateTab` FUNCTION 
-// -------------------------------------------------------------
 async function navigateTab(tabId, input) {
-  const tab = tabs.find(t => t.id === tabId);
-  if (!tab) return;
-
-  tab.input = input;
-  
-  const isSearch = !input.includes(".") || input.includes(" ");
-  if (isSearch) {
-    tab.title = `${input} - ${getSearchEngineName()}`;
-  } else {
-    tab.title = input;
+  const tab = tabs.find(item => item.id === tabId);
+  const value = String(input || '').trim();
+  if (!tab || !value) return;
+  const navigationId = ++tab.navigationId;
+  tab.input = value;
+  const normalizedUrl = normalizeUrl(value);
+  const isSearch = normalizedUrl.startsWith(getSearchEnginePrefix());
+  let displayTitle = value;
+  if (isSearch) displayTitle = value + ' - ' + getSearchEngineName();
+  else {
+    try { displayTitle = new URL(normalizedUrl).hostname.replace(/^www\\./, ''); } catch {}
   }
-  
-  tab.favicon = faviconForInput(input);
-  tab.newtabValue = ''; 
+  tab.title = displayTitle;
+  tab.favicon = faviconForInput(normalizedUrl);
+  tab.newtabValue = '';
 
   if (connection) {
     try {
       if (!await connection.getTransport()) {
-        await connection.setTransport("/epoxy/index.mjs", [{ wisp: wispUrl }]);
+        await connection.setTransport('/epoxy/index.mjs', [{ wisp: wispUrl }]);
       }
     } catch (err) {
-      console.warn("Transport setup error: ", err);
+      console.warn('[elite] transport setup:', err);
     }
   }
+  if (!tabs.includes(tab) || tab.navigationId !== navigationId) return;
 
-  const normalizedUrl = normalizeUrl(input);
-  
-  // Checking for standard UV config and building URL
-  let final = normalizedUrl;
-  if (typeof __uv$config !== 'undefined') {
-      final = __uv$config.prefix + __uv$config.encodeUrl(normalizedUrl);
-  } else {
-      console.error("Ultraviolet configuration (__uv$config) is not defined. Iframe route may break.");
+  if (typeof __uv$config === 'undefined') {
+    console.error('[elite] Ultraviolet configuration is unavailable.');
+    setBrowserLoading(false);
+    return;
   }
 
+  const final = __uv$config.prefix + __uv$config.encodeUrl(normalizedUrl);
   tab.history = tab.history.slice(0, tab.index + 1);
-  tab.history.push(final); 
-  tab.index = tab.history.length - 1; 
+  tab.displayHistory = (tab.displayHistory || []).slice(0, tab.index + 1);
+  tab.history.push(final);
+  tab.displayHistory.push(normalizedUrl);
+  tab.index = tab.history.length - 1;
   tab.iframeUrl = final;
 
-  if (address) address.textContent = normalizedUrl;
-  if (iframe) {
-    iframe.style.display = 'block'; 
-    iframe.src = final;
+  if (tab.id === currentTabId) {
+    if (address) address.value = value;
+    syncAddress(tab);
+    if (iframe) {
+      iframe.style.display = 'block';
+      if (iframe.src !== new URL(final, location.href).href) {
+        setBrowserLoading(true, 'Connecting to ' + (isSearch ? getSearchEngineName() : displayTitle) + '…');
+        iframe.src = final;
+      } else {
+        setBrowserLoading(false);
+      }
+    }
+    if (newtab) newtab.style.display = 'none';
   }
-  if (newtab) newtab.style.display = 'none'; 
   renderTabs();
 }
 
 function switchToTab(tabId) {
-  const tab = tabs.find(t => t.id === tabId);
-  if (!tab) return; currentTabId = tabId;
-
+  const tab = tabs.find(item => item.id === tabId);
+  if (!tab) return;
+  currentTabId = tabId;
   if (tab.iframeUrl) {
     if (iframe) {
-        iframe.style.display = 'block'; 
-        iframe.src = tab.history[tab.index] || tab.iframeUrl;
+      iframe.style.display = 'block';
+      const target = tab.history[tab.index] || tab.iframeUrl;
+      if (iframe.src !== new URL(target, location.href).href) {
+        setBrowserLoading(true, 'Restoring ' + (tab.title || 'tab') + '…');
+        iframe.src = target;
+      }
     }
     if (newtab) newtab.style.display = 'none';
+    syncAddress(tab);
   } else {
     if (iframe) {
-        iframe.style.display = 'none'; 
-        iframe.src = 'about:blank';
+      iframe.style.display = 'none';
+      iframe.src = 'about:blank';
     }
-    if (newtab) newtab.style.display = 'flex'; 
+    setBrowserLoading(false);
+    if (newtab) newtab.style.display = 'flex';
     if (searchInput) searchInput.value = tab.newtabValue || '';
+    if (address) address.value = '';
+    const lock = document.getElementById('addressLock');
+    if (lock) { lock.textContent = '⌑'; lock.classList.remove('secure'); }
   }
   renderTabs();
 }
 
 function closeTab(tabId) {
-  const idx = tabs.findIndex(t => t.id === tabId);
+  const idx = tabs.findIndex(item => item.id === tabId);
   if (idx === -1) return;
-  const wasCurrent = (tabs[idx].id === currentTabId);
-  tabs.splice(idx, 1);
-  if (tabs.length === 0) { createTab(); return; }
+  const wasCurrent = tabs[idx].id === currentTabId;
+  const removed = tabs.splice(idx, 1)[0];
+  closedTabs.push({ ...removed, history: [...removed.history] });
+  if (closedTabs.length > 10) closedTabs.shift();
+  if (!tabs.length) {
+    createTab();
+    return;
+  }
   if (wasCurrent) switchToTab(tabs[Math.min(idx, tabs.length - 1)].id);
   else renderTabs();
 }
 
+function restoreClosedTab() {
+  const previous = closedTabs.pop();
+  if (!previous) return;
+  const tab = { ...previous, id: nextTabId++, history: [...previous.history], displayHistory: [...(previous.displayHistory || [])], navigationId: 0 };
+  tabs.push(tab);
+  switchToTab(tab.id);
+}
+
 function goBack() {
-  const tab = tabs.find(t => t.id === currentTabId);
+  const tab = tabs.find(item => item.id === currentTabId);
   if (!tab || tab.index <= 0) return;
-  tab.index--; 
-  if (iframe) iframe.src = tab.history[tab.index];
+  tab.index--;
+  if (iframe) {
+    setBrowserLoading(true, 'Going back…');
+    iframe.src = tab.history[tab.index];
+  }
+  syncAddress(tab);
+  updateBrowserControls();
 }
 
 function goForward() {
-  const tab = tabs.find(t => t.id === currentTabId);
+  const tab = tabs.find(item => item.id === currentTabId);
   if (!tab || tab.index >= tab.history.length - 1) return;
-  tab.index++; 
-  if (iframe) iframe.src = tab.history[tab.index];
+  tab.index++;
+  if (iframe) {
+    setBrowserLoading(true, 'Going forward…');
+    iframe.src = tab.history[tab.index];
+  }
+  syncAddress(tab);
+  updateBrowserControls();
 }
+
+function reloadCurrentTab() {
+  const tab = tabs.find(item => item.id === currentTabId);
+  if (!tab || !tab.iframeUrl) {
+    if (tab && searchInput) searchInput.focus();
+    return;
+  }
+  setBrowserLoading(true, 'Reloading page…');
+  if (iframe) iframe.src = tab.history[tab.index] || tab.iframeUrl;
+}
+
+function goHome() {
+  const tab = tabs.find(item => item.id === currentTabId);
+  if (!tab) return;
+  tab.iframeUrl = '';
+  tab.history = [];
+  tab.displayHistory = [];
+  tab.index = -1;
+  tab.input = '';
+  tab.title = 'new tab';
+  tab.favicon = DEFAULT_FAVICON;
+  tab.newtabValue = '';
+  if (iframe) {
+    iframe.src = 'about:blank';
+    iframe.style.display = 'none';
+  }
+  setBrowserLoading(false);
+  if (newtab) newtab.style.display = 'flex';
+  if (searchInput) searchInput.value = '';
+  if (address) address.value = '';
+  renderTabs();
+}
+
+if (iframe) {
+  iframe.addEventListener('load', () => {
+    const active = tabs.find(item => item.id === currentTabId);
+    if (active && active.iframeUrl) setBrowserLoading(false);
+  });
+  iframe.addEventListener('error', () => setBrowserLoading(false));
+}
+
+if (addressForm && address) {
+  addressForm.addEventListener('submit', event => {
+    event.preventDefault();
+    const value = address.value.trim();
+    if (!value) return;
+    if (currentTabId == null) createTab();
+    navigateTab(currentTabId, value);
+    address.blur();
+  });
+}
+addressClear?.addEventListener('click', () => {
+  if (address) {
+    address.value = '';
+    address.focus();
+  }
+});
+reloadBtn?.addEventListener('click', reloadCurrentTab);
+homeBtn?.addEventListener('click', goHome);
 
 if (tabsNewBtn) tabsNewBtn.addEventListener('click', () => createTab());
 if (newTabBtn) newTabBtn.addEventListener('click', () => createTab());
@@ -951,6 +1113,53 @@ if (searchInput) {
     }
   });
 }
+
+document.addEventListener('keydown', event => {
+  const browserActive = document.body.classList.contains('elite-browser-view');
+  if (!browserActive) return;
+  const key = event.key.toLowerCase();
+  const mod = event.ctrlKey || event.metaKey;
+  if (mod && key === 'l') {
+    event.preventDefault();
+    address?.focus();
+    address?.select();
+  } else if (mod && event.shiftKey && key === 't') {
+    event.preventDefault();
+    restoreClosedTab();
+  } else if (mod && key === 't') {
+    event.preventDefault();
+    createTab();
+  } else if (mod && key === 'w') {
+    event.preventDefault();
+    if (currentTabId != null) closeTab(currentTabId);
+  } else if (mod && key === 'r') {
+    event.preventDefault();
+    reloadCurrentTab();
+  } else if (mod && key === 'tab') {
+    event.preventDefault();
+    if (tabs.length > 1) {
+      const index = tabs.findIndex(tab => tab.id === currentTabId);
+      const next = (index + (event.shiftKey ? tabs.length - 1 : 1)) % tabs.length;
+      switchToTab(tabs[next].id);
+    }
+  } else if (mod && /^[1-8]$/.test(key)) {
+    event.preventDefault();
+    const tab = tabs[Number(key) - 1];
+    if (tab) switchToTab(tab.id);
+  } else if (mod && key === '9') {
+    event.preventDefault();
+    if (tabs.length) switchToTab(tabs[tabs.length - 1].id);
+  } else if (event.altKey && key === 'arrowleft') {
+    event.preventDefault();
+    goBack();
+  } else if (event.altKey && key === 'arrowright') {
+    event.preventDefault();
+    goForward();
+  } else if (key === 'escape' && document.activeElement === address) {
+    address.blur();
+    syncAddress(tabs.find(tab => tab.id === currentTabId));
+  }
+});
 
 if (searchEngineSelect) {
   searchEngineSelect.value = localStorage.getItem('xxuep_engine') || 'duckduckgo';
@@ -1624,7 +1833,6 @@ applyMods(); renderMods();
    Add entries to grid3Data (same shape as the games list).
    ===================================================================== */
 const grid3Data = [
-  { title: "Duck Math", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/duckmath.jpg", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/duck.html" },
   { title: "Gn-Math", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/gnmathh.jpg", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/gn.html" },
   { title: "Horizon", img: "https://raw.githubusercontent.com/xxuep/xxuep-icons/main/horizonbigger.png", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/horizon.html" },
   { title: "HTML Editor", img: "https://raw.githubusercontent.com/xxuep/xxuep-icons/main/htmleditor.png", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/live-code-editor.html" },
@@ -1805,7 +2013,7 @@ function initDesktop() {
   tick(); const tickId = setInterval(tick, 1000);
 
   // every sidebar page becomes an app (the page elements are moved, not copied, so they stay untouched)
-  const APPS = [['home','Home','home-page','nav-home'],['browser','Browser','','nav-browser'],['games','Games','page2','nav-page2'],['apps','Apps','page4','nav-page4'],['settings','Settings','settings-page','nav-settings'],['credits','Credits','credits-page','nav-credits']]
+  const APPS = [['home','Home','home-page','nav-home'],['browser','Browser','','nav-browser'],['games','Games','page2','nav-page2'],['apps','Apps','page4','nav-page4'],['settings','Settings','settings-page','nav-settings'],['credits','Info','credits-page','nav-credits']]
     .map(([id, name, page, nav]) => ({ id, name, page: page ? q('#' + page) : null, icon: q('#' + nav + ' img').src }));
 
   const hidePages = () => APPS.forEach(a => { if (a.page && !wins[a.id]) a.page.style.display = 'none'; });   // the standard layout's open page must not cover the desktop
@@ -1969,10 +2177,65 @@ function initDesktop() {
   };
 }
 
+/* ---------- home quotes (edit the list in index.html > ELITE_CONFIG) ---------- */
+function homeQuotes() {
+  const C = window.ELITE_CONFIG || {}, list = (C.quotes || []).filter(s => typeof s === 'string' && s.trim());
+  const box = q('#homeQuote'), txt = q('#homeQuoteText');
+  if (!box || !txt) return;
+  if (!list.length) { box.hidden = true; return; }
+  let bag = [], last = -1;
+  const next = () => {                                   // shuffle bag: every quote shows once before any repeats
+    if (!bag.length) {
+      bag = list.map((_, i) => i);
+      for (let i = bag.length - 1; i > 0; i--) { const k = Math.floor(Math.random() * (i + 1)); [bag[i], bag[k]] = [bag[k], bag[i]]; }
+      if (bag.length > 1 && bag[bag.length - 1] === last) bag.unshift(bag.pop());   // never the same quote twice in a row
+    }
+    return (last = bag.pop());
+  };
+  const show = first => {
+    const t = list[next()];
+    if (first) { txt.textContent = t; requestAnimationFrame(() => box.classList.add('in')); return; }
+    box.classList.remove('in');
+    setTimeout(() => { txt.textContent = t; box.classList.add('in'); }, 450);
+  };
+  show(true);
+  if (list.length > 1) setInterval(() => show(false), Math.max(1, +C.quoteSeconds || 5) * 1000);
+}
+
+/* ---------- update board popup (edit it in index.html > ELITE_CONFIG) ---------- */
+function updateBoard() {
+  const U = (window.ELITE_CONFIG || {}).updates;
+  if (!U || !Array.isArray(U.items) || !U.items.length) return;
+  const id = String(U.id || 'update-1');
+  if (!U.alwaysShow && get('elite_update_seen') === id) return;
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const ov = mk('div', 'ub-overlay'), card = mk('div', 'ub-card');
+  card.setAttribute('role', 'dialog'); card.setAttribute('aria-modal', 'true'); card.setAttribute('aria-label', U.title || "what's new");
+  card.innerHTML = '<button class="ub-x" type="button" aria-label="Close">\u00d7</button>' +
+    (U.date ? '<div class="ub-tag">' + esc(U.date) + '</div>' : '') +
+    '<h2>' + esc(U.title || "what's new") + '</h2>' +
+    '<div class="ub-list">' + U.items.map((it, i) =>
+      '<article class="ub-item" style="animation-delay:' + (0.25 + i * 0.09) + 's"><h3>' + esc(it.title) + '</h3><p>' + esc(it.text) + '</p></article>').join('') + '</div>' +
+    '<button class="ub-go" type="button">got it</button>';
+  const onKey = e => { if (e.key === 'Escape') close(); };
+  const close = () => {
+    if (ov.classList.contains('out')) return;
+    set('elite_update_seen', id); removeEventListener('keydown', onKey);
+    ov.classList.add('out'); setTimeout(() => ov.remove(), 420);
+  };
+  card.querySelector('.ub-x').onclick = close; card.querySelector('.ub-go').onclick = close;
+  ov.onpointerdown = e => { if (e.target === ov) close(); };
+  addEventListener('keydown', onKey);
+  ov.appendChild(card); document.body.appendChild(ov);
+  card.querySelector('.ub-go').focus({ preventScroll: true });
+}
+
 /* ---------- start ---------- */
 applyIdentity();
 const start = layout => { if (layout === 'desktop') deskOff = initDesktop(); };
-if (!get('elite_setup_done')) setup(start); else start(get('elite_layout', 'standard'));
+homeQuotes();
+if (!get('elite_setup_done')) setup(l => { start(l); updateBoard(); });   // first visit: setup popup, then the update board
+else { start(get('elite_layout', 'standard')); updateBoard(); }
 // settings page gets the layout switcher too (so you can change it from either layout)
 const sp = q('#settings-page');
 if (sp) { const g = mk('div', 'settings-group', '<label>Layout</label>'); g.style.marginTop = '20px';
