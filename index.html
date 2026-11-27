@@ -10,7 +10,7 @@
 <script src="/uv/uv.bundle.js"></script>
 <script src="/uv/uv.config.js"></script>
 <script src="/baremux/index.js"></script>
-<link rel="stylesheet" href="elite.css?v=live3">
+<link rel="stylesheet" href="elite.css">
 <link rel="stylesheet" href="desktop.css">
 </head>
 <body data-theme="city">
@@ -34,8 +34,8 @@
   <div class="sidebar-btn" id="nav-settings" title="Settings">
     <img src="https://raw.githubusercontent.com/xxuep/xxuep-icons/main/gear.png" style="filter: drop-shadow(0px 1px 2px rgba(0,0,0,0.5));" width="30" height="30" alt="Settings" />
   </div>
-  <div class="sidebar-btn" id="nav-credits" title="Credits">
-    <img src="https://raw.githubusercontent.com/xxuep/xxuep-icons/main/information.png" style="filter: drop-shadow(0px 1px 2px rgba(0,0,0,0.5));" width="40" height="40" alt="Credits" />
+  <div class="sidebar-btn" id="nav-credits" title="Info">
+    <img src="https://raw.githubusercontent.com/xxuep/xxuep-icons/main/information.png" style="filter: drop-shadow(0px 1px 2px rgba(0,0,0,0.5));" width="40" height="40" alt="Info" />
   </div>
 </div> 
 
@@ -47,22 +47,9 @@
 <main id="home-page" class="page-container landing-page">
   <div class="home-inner">
     <h1 class="home-logo">elite</h1>
-    <section class="news-panel">
-      <div class="news-heading">news</div>
-      <article class="news-entry">
-        <h3>welcome to elite</h3>
-        <p>yooo wsp peoples its ya boy xxuep i was given full access to elite im now updating it often.</p>
-      </article>
-      <article class="news-entry">
-        <h3>updates</h3>
-        <p>added new themes and more mods and a music and cursors for themes</p>
-      </article>
-      <article class="news-entry">
-        <h3>why are the games the same on triton and t!tan?</h3>
-        <p>triton STOLE from elite, t!tan asked. in this situation, elite and xxuep are the OWNERS of the whole game list.</p>
-      </article>
-    </section>
-    <button type="button" id="home-open-browser" class="home-open-browser">open browser →</button>
+    <div class="home-quote" id="homeQuote" aria-live="polite">
+      <p id="homeQuoteText"></p>
+    </div>
   </div>
 </main>
 
@@ -141,8 +128,11 @@
       <option value="custom">Colored</option>
       <option value="verity">Verity</option>
       <option value="como se dice">como se dice</option>
+      <option value="vocaloid">Vocaloid</option>
       <option value="miku">Miku</option>
       <option value="teto">Teto</option>
+      <option value="zzz">Zenless Zone Zero</option>
+      <option value="ddlc">Doki Doki Literature Club</option>
       <option value="city">City</option>
       <option value="shapes">Shapes</option>
       <option value="palmtrees">Palm Trees</option>
@@ -162,12 +152,22 @@
 
 <div id="credits-page" class="page-container">
   <div class="anim-frames"></div>
-  <h1>creds</h1>
-  <h2>owner</h2>
-  <p>elite was created by dillybob. this was supposed to be a scuffed version of opera then turning into what u see today.</p>
-  <h3>what does it use</h3>
-  <p>the browser system is ultraviolet, by titaniumnetwork.</p>
-  <p>i just wanna say based on how far elite has came, anyone who uses it i love you man.</p>
+  <h1>info</h1>
+  <section class="news-panel info-news">
+      <div class="news-heading">news</div>
+      <article class="news-entry">
+        <h3>welcome to elite</h3>
+        <p>yooo wsp peoples its ya boy xxuep i was given full access to elite im now updating it often.</p>
+      </article>
+      <article class="news-entry">
+        <h3>updates</h3>
+        <p>added new themes and more mods and a music and cursors for themes</p>
+      </article>
+      <article class="news-entry">
+        <h3>why are the games the same on triton and t!tan?</h3>
+        <p>triton STOLE from elite, t!tan asked. in this situation, elite and xxuep are the OWNERS of the whole game list.</p>
+      </article>
+    </section>
 </div>
 
 <div class="tabs" id="tabsBar">
@@ -184,13 +184,23 @@
   <div class="btn" id="forwardBtn" title="Go Forward">
     <img src="https://raw.githubusercontent.com/feathericons/feather/master/icons/arrow-right.svg" style="filter: var(--icon-filter);" width="20" height="20" alt="Forward" />
   </div>
-  <div class="btn" id="newTabBtn" title="New Tab">
+  <div class="btn" id="reloadBtn" title="Reload page" aria-label="Reload page">
+    <img src="https://raw.githubusercontent.com/feathericons/feather/master/icons/refresh-cw.svg" style="filter: var(--icon-filter);" width="18" height="18" alt="Reload" />
+  </div>
+  <div class="btn" id="homeBtn" title="Home" aria-label="Home">
+    <img src="https://raw.githubusercontent.com/feathericons/feather/master/icons/home.svg" style="filter: var(--icon-filter);" width="18" height="18" alt="Home" />
+  </div>
+  <form id="addressForm" class="address-wrap" autocomplete="off">
+    <span class="address-lock" id="addressLock" aria-hidden="true">⌑</span>
+    <input class="address" id="address" type="text" spellcheck="false" autocomplete="off" placeholder="Search or enter a URL" aria-label="Address and search bar">
+    <button class="address-clear" id="addressClear" type="button" aria-label="Clear address" title="Clear">×</button>
+  </form>
+  <div class="btn" id="newTabBtn" title="New Tab" aria-label="New tab">
     <img src="https://raw.githubusercontent.com/feathericons/feather/master/icons/plus.svg" style="filter: var(--icon-filter);" width="20" height="20" alt="New Tab" />
   </div>
-  <div class="btn" id="closeBtn" title="Close Tab">
+  <div class="btn" id="closeBtn" title="Close Tab" aria-label="Close tab">
     <img src="https://raw.githubusercontent.com/feathericons/feather/master/icons/x.svg" style="filter: var(--icon-filter);" width="20" height="20" alt="Close Tab" />
   </div>
-  <div class="address" id="address">elite://newtab</div>
 </div>
 
 
@@ -201,11 +211,63 @@
   <div class="shortcuts" id="shortcuts"></div>
 </div>
 
-<div id="iframe-loading-bg"></div>
+<div id="iframe-loading-bg" aria-live="polite">
+  <div class="browser-loader-card">
+    <div class="browser-loader-orbit"><span></span><span></span><span></span></div>
+    <div class="browser-loader-title">Connecting</div>
+    <div class="browser-loader-subtitle" id="browserLoadingText">Preparing secure connection…</div>
+    <div class="browser-loader-track"><span></span></div>
+  </div>
+</div>
 
 <iframe id="viewer"></iframe>
 
-<script src="elite.js?v=live3"></script>
+<script>
+/* =====================================================================
+   EDIT ME - home page quotes + start-up update board
+   ===================================================================== */
+window.ELITE_CONFIG = {
+
+  /* home page quotes: picked at random (no repeats until all have shown)
+     and swapped on a timer. add, remove or reword anything in this list. */
+  quoteSeconds: 7,
+  quotes: [
+    "yarrrrrrr",
+    "yoo",
+    "wsp",
+    "hey",
+    "hi",
+    "people too busy to read these am i right",
+    "people nowadays talm bout some '2 man!!' js have fun dawg",
+    "marlon is NOT that good looking",
+    "happy thanksgiving",
+    "what is today",
+    "yo wait what is elite",
+    "yo chez/mav please actually make a website instead of stealing my games",
+    "yo teto lwk 👀",
+    "yo miku lwk 👀 (age isnt canon i say shes 18+ so she is now)",
+    "lwk jelly",
+    "im thankful for yams",
+  ],
+
+  /* update board popup shown when the site starts.
+     it shows once per "id" - change the id whenever you post a new update
+     so everybody sees it again. set alwaysShow to true to show it on every load. */
+  updates: {
+    id: 'update-1',
+    alwaysShow: true,    // true = pops up on every refresh
+    date: 'nov 26',
+    title: "what's new",
+    items: [
+      { title: 'new themes',         text: 'zenless zone zero theme, vocaloid theme, and ddlc' },
+      { title: 'layout changes',         text: 'home page is different, info page different, and yea' },
+      { title: 'game',         text: 'added buckshot roulette' },
+      { title: 'tiktok',         text: 'tiktok: @elitegamesontop' },
+    ]
+  }
+};
+</script>
+<script src="elite.js"></script>
 <script src="desktop.js"></script>
 
 </body>
