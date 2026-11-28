@@ -1487,12 +1487,20 @@ function eliteLibrary(cfg) {
     const toggle = sec.querySelector('.section-toggle'), body = sec.querySelector('.section-body');
     if (!toggle || !body) return;
     const KEY = 'elite_sec_' + sec.id;
-    const set = open => { toggle.setAttribute('aria-expanded', String(open)); body.hidden = !open; };
+    const set = (open, animate) => {
+      toggle.setAttribute('aria-expanded', String(open));
+      clearTimeout(body._closeTimer);
+      if (open) { body.classList.remove('closing'); body.hidden = false; }
+      else if (animate && !body.hidden) {
+        body.classList.add('closing');
+        body._closeTimer = setTimeout(() => { body.hidden = true; body.classList.remove('closing'); }, 200);
+      } else body.hidden = true;
+    };
     let open = true; try { open = localStorage.getItem(KEY) !== '0'; } catch {}
-    set(open);
+    set(open, false);
     toggle.addEventListener('click', () => {
       const next = toggle.getAttribute('aria-expanded') !== 'true';
-      set(next);
+      set(next, true);
       try { localStorage.setItem(KEY, next ? '1' : '0'); } catch {}
     });
   });
@@ -1590,9 +1598,133 @@ function setOnekoMod(enabled) {
   activeOneko = {el, timer, onMove};
 }
 
+
+// WALLPAPER PARALLAX MOD: the wallpaper moves to an oversized layer that eases toward the cursor.
+let activeParallax = null;
+function setParallaxMod(enabled) {
+  if (!enabled) {
+    if (!activeParallax) return;
+    cancelAnimationFrame(activeParallax.raf);
+    document.removeEventListener('pointermove', activeParallax.onMove);
+    activeParallax.el.remove();
+    document.documentElement.classList.remove('elite-parallax-on');
+    activeParallax = null;
+    return;
+  }
+  if (activeParallax) return;
+  const el = document.createElement('div');
+  el.id = 'elite-parallax-bg';
+  el.setAttribute('aria-hidden', 'true');
+  document.body.prepend(el);
+  document.documentElement.classList.add('elite-parallax-on');
+  const MAX = 28;                 // px the wallpaper can drift (layer overhangs the screen by 40px)
+  let tx = 0, ty = 0, cx = 0, cy = 0;
+  const state = { el, raf: 0, onMove: null };
+  const loop = () => {
+    cx += (tx - cx) * 0.07; cy += (ty - cy) * 0.07;
+    el.style.transform = `translate3d(${cx.toFixed(2)}px, ${cy.toFixed(2)}px, 0)`;
+    if (Math.abs(tx - cx) > 0.05 || Math.abs(ty - cy) > 0.05) state.raf = requestAnimationFrame(loop);
+    else state.raf = 0;
+  };
+  state.onMove = e => {
+    tx = -((e.clientX / window.innerWidth) - 0.5) * 2 * MAX;
+    ty = -((e.clientY / window.innerHeight) - 0.5) * 2 * MAX;
+    if (!state.raf) state.raf = requestAnimationFrame(loop);
+  };
+  document.addEventListener('pointermove', state.onMove, { passive: true });
+  activeParallax = state;
+}
+
+// DDLC STICKERS MOD: sayori, natsuki and yuri idle-bob in the bottom right and hop at random.
+const DDLC_STICKER_BASE = 'https://raw.githubusercontent.com/xxuep1/ddlc-stickers/main/';
+const DDLC_STICKERS = ['sayoristicker.png', 'natsukistickerfixed.png', 'yuristickerfixed.png'];
+const YURI_SCARY_FILE = 'yuriscarystickerfixed.png';   // each hop, yuri has a chance to swap to this for good (until the page is refreshed)
+let yuriIsScary = false;                          // stays true even if the mod is toggled off and on
+let activeStickers = null;
+function setDdlcStickersMod(enabled) {
+  if (!enabled) {
+    if (!activeStickers) return;
+    cancelAnimationFrame(activeStickers.raf);
+    activeStickers.el.remove();
+    activeStickers = null;
+    return;
+  }
+  if (activeStickers) return;
+  const wrap = document.createElement('div');
+  wrap.id = 'elite-ddlc-stickers';
+  wrap.setAttribute('aria-hidden', 'true');
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  new Image().src = DDLC_STICKER_BASE + YURI_SCARY_FILE;   // preload so the swap is instant
+  const startHop = (c, now) => {
+    c.hop = { start: now, dur: rnd(460, 760), h: rnd(14, 38), dx: rnd(-8, 8), spin: rnd(-9, 9) };
+    // yuri: chance to turn into the scary sticker, and she stays that way until the page is refreshed
+    if (c.isYuri && !yuriIsScary && Math.random() < 1 / 8) {
+      yuriIsScary = true;
+      c.img.src = DDLC_STICKER_BASE + YURI_SCARY_FILE;
+    }
+  };
+  const chars = DDLC_STICKERS.map(file => {
+    const slot = document.createElement('div');
+    slot.className = 'ddlc-slot';
+    const img = document.createElement('img');
+    img.alt = ''; img.draggable = false;
+    img.addEventListener('load', () => img.classList.add('ready'));
+    img.src = DDLC_STICKER_BASE + (file.startsWith('yuri') && yuriIsScary ? YURI_SCARY_FILE : file);
+    slot.append(img);
+    wrap.append(slot);
+    const c = {
+      slot, img, isYuri: file.startsWith('yuri'), hop: null, phase: rnd(0, 6.28), bobSpeed: rnd(1.3, 2.2), bobAmp: rnd(1.5, 3.4),
+      swaySpeed: rnd(.7, 1.3), swayAmp: rnd(1.2, 3), driftSpeed: rnd(.35, .7),
+      nextHop: performance.now() + rnd(500, 3000)
+    };
+    slot.addEventListener('click', () => { if (!c.hop) startHop(c, performance.now()); });
+    return c;
+  });
+  document.body.appendChild(wrap);
+  const state = { el: wrap, raf: 0 };
+  const frame = now => {
+    const t = now / 1000;
+    for (const c of chars) {
+      if (!c.hop && now >= c.nextHop) {
+        startHop(c, now);
+        // sometimes a neighbour joins in a moment later
+        if (Math.random() < .3) {
+          const other = chars[Math.floor(Math.random() * chars.length)];
+          if (other !== c && !other.hop) other.nextHop = now + rnd(80, 380);
+        }
+      }
+      let y = Math.sin(t * c.bobSpeed + c.phase) * c.bobAmp;
+      let x = Math.sin(t * c.driftSpeed + c.phase * 2.3) * 3;
+      let rot = Math.sin(t * c.swaySpeed + c.phase * 1.7) * c.swayAmp;
+      let sy = 1 + Math.sin(t * c.bobSpeed + c.phase) * .012;
+      if (c.hop) {
+        const hp = c.hop, p = (now - hp.start) / hp.dur;
+        if (p >= 1) { c.hop = null; c.nextHop = now + (Math.random() < .25 ? rnd(120, 300) : rnd(1400, 4600)); }
+        else if (p < .14) { sy = 1 - .1 * (p / .14); }
+        else if (p < .86) {
+          const q = (p - .14) / .72;
+          y = -4 * hp.h * q * (1 - q);
+          x += hp.dx * q; rot += hp.spin * Math.sin(q * Math.PI);
+          sy = .9 + .22 * Math.sin(q * Math.PI);
+        } else {
+          const k = (p - .86) / .14;
+          x += hp.dx; sy = 1 - .1 * (1 - k) * Math.cos(k * Math.PI * 2);
+        }
+      }
+      const sx = 1 / sy;
+      c.slot.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) rotate(${rot.toFixed(2)}deg) scale(${sx.toFixed(3)}, ${sy.toFixed(3)})`;
+    }
+    state.raf = requestAnimationFrame(frame);
+  };
+  state.raf = requestAnimationFrame(frame);
+  activeStickers = state;
+}
+
 // Add new mod definitions here. Each mod has a unique id, display name, description and optional apply(enabled) callback.
 const eliteMods = [
-  { id: 'oneko', name: 'Oneko Cat', description: 'the best cursor addon ever. use it. now.', apply: setOnekoMod }
+  { id: 'oneko', name: 'Oneko Cat', description: 'the best cursor addon ever. use it. now.', apply: setOnekoMod },
+  { id: 'wallpaper-parallax', name: 'Moving Wallpaper', description: 'wallpaper moves with cursor', apply: setParallaxMod },
+  { id: 'ddlc-stickers', name: 'Writing a Poem', description: 'sayori, natsuki and yuri watching you', apply: setDdlcStickersMod }
 ];
 const modSearch = document.getElementById('modSearch');
 const modDropdown = document.getElementById('modDropdown');
@@ -1833,6 +1965,8 @@ applyMods(); renderMods();
    Add entries to grid3Data (same shape as the games list).
    ===================================================================== */
 const grid3Data = [
+  { title: "eliteTube (w.i.p)", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/elitetubee.jpg", htmlUrl: "https://raw.githubusercontent.com/xxuep1/elite/main/elitetube.html" },
+  { title: "eliteOS", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/eliteoss.jpg", htmlUrl: "https://raw.githubusercontent.com/xxuep1/elite/main/eliteos.html" },
   { title: "Gn-Math", img: "https://raw.githubusercontent.com/xxuep/offline-game-thumbnails/main/gnmathh.jpg", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/gn.html" },
   { title: "Horizon", img: "https://raw.githubusercontent.com/xxuep/xxuep-icons/main/horizonbigger.png", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/horizon.html" },
   { title: "HTML Editor", img: "https://raw.githubusercontent.com/xxuep/xxuep-icons/main/htmleditor.png", htmlUrl: "https://raw.githubusercontent.com/xxuep1/randomgames/main/live-code-editor.html" },
