@@ -1140,3 +1140,168 @@ body.elite-browser-view .chrome {
 @media (prefers-reduced-motion: reduce) {
   .tab, .newtab, .newtab h1, .shortcut, .browser-loader-card, .browser-loader-orbit, .browser-loader-track span { animation: none !important; transition: none !important; }
 }
+
+
+/* =====================================================================
+   DROPDOWN STYLE + ANIMATION (mods picker, settings pickers, section dropdowns)
+   ===================================================================== */
+.mod-picker { --ease: cubic-bezier(.2,.9,.25,1); }
+:root { --ease: cubic-bezier(.2,.9,.25,1); }
+
+/* input + toggle: focus glow, smooth chevron instead of a text glyph */
+#modSearch, .select-picker .picker-input { transition: border-color .2s ease, box-shadow .25s ease, background .2s ease; }
+.mod-picker:focus-within #modSearch, .select-picker:focus-within .picker-input {
+  border-color: var(--accent, #fff); background: rgba(0,0,0,.34);
+  box-shadow: 0 0 0 3px rgba(255,255,255,.16);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, #fff) 30%, transparent);
+}
+#modDropdownToggle, .select-picker .picker-toggle {
+  position: relative; font-size: 0; padding: 0; overflow: hidden;
+  transition: background .2s ease, border-color .2s ease, transform .15s ease;
+}
+#modDropdownToggle:hover, .select-picker .picker-toggle:hover { background: var(--glass-highlight); }
+#modDropdownToggle:active, .select-picker .picker-toggle:active { transform: scale(.94); }
+#modDropdownToggle::before, .select-picker .picker-toggle::before {
+  content: ''; position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; margin: -5px 0 0 -5px;
+  border-right: 2.5px solid currentColor; border-bottom: 2.5px solid currentColor; border-radius: 1px;
+  transform: translateY(-2px) rotate(45deg); transition: transform .35s var(--ease);
+}
+#modDropdownToggle[aria-expanded="true"]::before, .select-picker .picker-toggle[aria-expanded="true"]::before {
+  transform: translateY(2px) rotate(225deg);
+}
+
+/* the panel: frosted glass that unfolds from the top; closing plays in reverse */
+.mod-dropdown {
+  display: block; padding: 6px; border-radius: 16px; overflow-y: auto; transform-origin: top center;
+  background: var(--bg-color);
+  background: color-mix(in srgb, var(--bg-color) 80%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(150%); backdrop-filter: blur(18px) saturate(150%);
+  box-shadow: 0 18px 44px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.18);
+  scrollbar-width: thin; scrollbar-color: var(--accent, #fff) transparent;
+  opacity: 1; visibility: visible; transform: none;
+  transition: opacity .2s ease, transform .3s var(--ease), max-height .34s var(--ease), visibility 0s;
+}
+.mod-dropdown[hidden] {
+  display: block !important; visibility: hidden; opacity: 0; pointer-events: none;
+  max-height: 0 !important; padding-top: 0; padding-bottom: 0; border-width: 0;
+  transform: translateY(-10px) scale(.97);
+  transition: opacity .16s ease, transform .2s ease, max-height .2s ease, visibility 0s linear .2s;
+}
+/* keep the closing panel above the next settings card until it has finished fading */
+.settings-group { transition: z-index 0s linear .24s; }
+.settings-group:has(.mod-dropdown:not([hidden])) { transition-delay: 0s; }
+
+/* options: rounded rows, accent bar on hover, selected tick, staggered entrance */
+.mod-option { border-bottom: 0; border-radius: 10px; margin: 0 0 2px; position: relative;
+  transition: background .18s ease, transform .2s var(--ease), box-shadow .2s ease; }
+.mod-option:last-child { margin-bottom: 0; }
+.mod-option:hover, .mod-option:focus-visible { background: var(--glass-highlight); transform: translateX(4px); box-shadow: inset 3px 0 0 var(--accent, #fff); outline: none; }
+.mod-option:active { transform: translateX(4px) scale(.985); }
+.select-picker .mod-option.is-current { box-shadow: inset 3px 0 0 var(--accent, #fff); }
+.select-picker .mod-option.is-current > span:last-child { color: var(--accent, #fff); font-weight: 600; }
+.mod-dropdown:not([hidden]) .mod-option { animation: ddOpt .3s var(--ease) backwards; }
+.mod-dropdown:not([hidden]) .mod-option:nth-child(1){animation-delay:0.020s}
+.mod-dropdown:not([hidden]) .mod-option:nth-child(2){animation-delay:0.045s}
+.mod-dropdown:not([hidden]) .mod-option:nth-child(3){animation-delay:0.070s}
+.mod-dropdown:not([hidden]) .mod-option:nth-child(4){animation-delay:0.095s}
+.mod-dropdown:not([hidden]) .mod-option:nth-child(5){animation-delay:0.120s}
+.mod-dropdown:not([hidden]) .mod-option:nth-child(6){animation-delay:0.145s}
+.mod-dropdown:not([hidden]) .mod-option:nth-child(7){animation-delay:0.170s}
+.mod-dropdown:not([hidden]) .mod-option:nth-child(8){animation-delay:0.195s}
+.mod-dropdown:not([hidden]) .mod-option:nth-child(9){animation-delay:0.220s}
+.mod-dropdown:not([hidden]) .mod-option:nth-child(10){animation-delay:0.245s}
+.mod-dropdown:not([hidden]) .mod-option:nth-child(11){animation-delay:0.270s}
+.mod-dropdown:not([hidden]) .mod-option:nth-child(12){animation-delay:0.295s}
+@keyframes ddOpt { from { opacity: 0; transform: translateY(-8px); } }
+
+/* installed-mod chips pop in */
+.mod-chip { animation: chipIn .35s var(--ease) backwards; transition: transform .2s ease, background .2s ease; }
+.mod-chip:hover { transform: translateY(-1px); background: rgba(0,0,0,.3); }
+.mod-chip button { transition: background .2s ease, transform .25s var(--ease); }
+.mod-chip button:hover { background: rgba(255,60,60,.55); transform: rotate(90deg); }
+@keyframes chipIn { from { opacity: 0; transform: scale(.7); } }
+
+/* games / apps section dropdowns */
+.section-toggle { transition: background .2s ease, border-color .2s ease, transform .2s var(--ease), box-shadow .25s ease; }
+.section-toggle:hover { transform: translateY(-1px); }
+.section-toggle:active { transform: scale(.99); }
+.section-toggle .chev { transition: transform .35s var(--ease); }
+.section-body { transform-origin: top center; animation: secOpen .34s var(--ease) both; }
+.section-body.closing { animation: secClose .2s ease both; pointer-events: none; }
+@keyframes secOpen { from { opacity: 0; transform: translateY(-12px) scaleY(.96); } }
+@keyframes secClose { to { opacity: 0; transform: translateY(-10px) scaleY(.97); } }
+
+/* =====================================================================
+   PAGE ENTRANCE ANIMATIONS (home, settings, info)
+   They replay every time the page is opened.
+   ===================================================================== */
+@keyframes pgRise { from { opacity: 0; transform: translateY(24px); } }
+@keyframes pgSlide { from { opacity: 0; transform: translateX(-30px); } }
+@keyframes homeLogoIn { from { opacity: 0; transform: translateY(36px) scale(.9); filter: blur(12px); } }
+
+/* home */
+.home-logo { animation: eliteSway 6s ease-in-out infinite, homeLogoIn .85s var(--ease) backwards; }
+#home-page .home-quote { animation: pgRise .6s .3s var(--ease) backwards; }
+
+/* settings */
+#settings-page > h2 { animation: pgSlide .5s var(--ease) backwards; }
+#settings-page > .settings-group { animation: pgRise .6s var(--ease) backwards; }
+#settings-page > :nth-child(1){animation-delay:0.00s}
+#settings-page > :nth-child(2){animation-delay:0.04s}
+#settings-page > :nth-child(3){animation-delay:0.08s}
+#settings-page > :nth-child(4){animation-delay:0.12s}
+#settings-page > :nth-child(5){animation-delay:0.16s}
+#settings-page > :nth-child(6){animation-delay:0.20s}
+#settings-page > :nth-child(7){animation-delay:0.24s}
+#settings-page > :nth-child(8){animation-delay:0.28s}
+#settings-page > :nth-child(9){animation-delay:0.32s}
+#settings-page > :nth-child(10){animation-delay:0.36s}
+
+/* info */
+#credits-page > h1 { animation: pgSlide .5s var(--ease) backwards; }
+#credits-page .news-panel { animation: pgRise .65s .08s var(--ease) backwards; }
+#credits-page .news-entry { animation: pgRise .55s var(--ease) backwards; }
+#credits-page .news-entry:nth-child(1){animation-delay:0.22s}
+#credits-page .news-entry:nth-child(2){animation-delay:0.31s}
+#credits-page .news-entry:nth-child(3){animation-delay:0.40s}
+#credits-page .news-entry:nth-child(4){animation-delay:0.49s}
+#credits-page .news-entry:nth-child(5){animation-delay:0.58s}
+#credits-page .news-entry:nth-child(6){animation-delay:0.67s}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-logo { animation: eliteSway 6s ease-in-out infinite; }
+  #home-page .home-quote, #settings-page > *, #credits-page > h1, #credits-page .news-panel, #credits-page .news-entry,
+  .mod-dropdown .mod-option, .mod-chip, .section-body { animation: none !important; }
+}
+
+/* =====================================================================
+   MOD: WALLPAPER PARALLAX
+   the wallpaper moves onto its own oversized layer so it can drift with the cursor
+   ===================================================================== */
+html.elite-parallax-on, html.elite-parallax-on body { background-image: none !important; }
+html.elite-parallax-on body { background: transparent !important; }
+#elite-parallax-bg {
+  position: fixed; inset: -40px; z-index: -1; pointer-events: none;
+  background-color: var(--bg-color); background-image: var(--bg-gradient);
+  background-size: cover; background-position: center; background-repeat: no-repeat;
+  will-change: transform; transform: translate3d(0,0,0);
+}
+
+/* =====================================================================
+   MOD: DDLC STICKERS (bottom right)
+   ===================================================================== */
+#elite-ddlc-stickers {
+  position: fixed; right: 22px; bottom: 10px; z-index: 10010; display: flex; align-items: flex-end;
+  pointer-events: none; transition: opacity .35s ease, transform .35s var(--ease);
+}
+body.elite-browser-view #elite-ddlc-stickers { opacity: 0; transform: translateY(24px); }
+.ddlc-slot {
+  pointer-events: auto; cursor: pointer; margin-left: -8px; transform-origin: 50% 100%; will-change: transform;
+  user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
+}
+body.elite-browser-view .ddlc-slot { pointer-events: none; }
+.ddlc-slot img {
+  display: block; height: clamp(76px, 15vh, 128px); width: auto; opacity: 0; pointer-events: none;
+  -webkit-user-drag: none; filter: drop-shadow(0 3px 5px rgba(0,0,0,.35)); transition: opacity .5s ease;
+}
+.ddlc-slot img.ready { opacity: 1; }
